@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d1319">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="خريطة اليوم">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>خريطة اليوم v9 — PWA</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0d1319;--panel:#18232c;--panel2:#22313c;--ink:#f4f8fa;--muted:#aebfc7;
+  --accent:#6de1b0;--accent2:#7fb8ff;--border:#38505a;--danger:#ff8a8a;--warn:#ffd37a;
+  --shadow:0 12px 35px #0004;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{font-family:Tahoma,"Segoe UI",sans-serif;background:linear-gradient(135deg,#0e2026,#0d1319 62%);color:var(--ink);margin:0;line-height:1.55}
+main{max-width:1240px;margin:auto;padding:20px 14px 60px}header{display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;margin-bottom:16px}h1{font-size:clamp(27px,5vw,42px);margin:0}h2{font-size:21px;margin:0 0 10px}h3{font-size:16px;margin:0 0 8px;color:var(--muted)}p{color:var(--muted);margin:6px 0 12px}.pill{border:1px solid #456b63;padding:3px 10px;border-radius:40px;color:var(--accent)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.wide{grid-column:1/-1}.card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
+.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.row>*{flex-shrink:0}.between{justify-content:space-between}.stack{display:grid;gap:10px}
+label{display:inline-flex;align-items:center;gap:7px;color:var(--muted)}select,input,textarea,button{font:inherit}select,input[type=number],input[type=time],input[type=date],textarea{background:var(--panel2);color:var(--ink);border:1px solid var(--border);border-radius:9px;padding:8px}textarea{width:100%;min-height:250px;resize:vertical;direction:rtl}input[type=number]{width:88px}
+button{border:0;border-radius:11px;padding:9px 15px;cursor:pointer;background:var(--accent);color:#08231b;font-weight:bold}button.secondary{background:#405766;color:#fff}button.ghost{background:transparent;border:1px solid var(--border);color:var(--ink)}button.warn{background:#704848;color:#fff}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent)}
+.timer{font-size:clamp(62px,10vw,104px);font-weight:780;font-variant-numeric:tabular-nums;line-height:1.08;letter-spacing:2px;text-align:center;margin:13px 0}.phase{text-align:center;font-weight:bold;color:var(--accent);font-size:21px}.progress{height:12px;background:#344954;border-radius:25px;overflow:hidden}.progress>div{height:100%;background:var(--accent);width:0%;transition:width .2s}.buttons{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:16px 0}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{background:var(--panel2);padding:12px;border-radius:11px}.stat strong{display:block;font-size:25px;color:var(--accent);font-variant-numeric:tabular-nums}.note{padding:10px;border-radius:9px;background:#203b38;color:#d9fff0}.small{font-size:12px;color:var(--muted)}
+/* Day / shot-style map */
+.map-shell{direction:ltr;background:#0f181e;border:1px solid var(--border);border-radius:13px;padding:12px;overflow:hidden}.map-title{direction:rtl;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}.day-map{height:88px;display:flex;position:relative;border-radius:10px;overflow:hidden;border:1px solid #3b4d58;background:#111a20}.map-segment{position:relative;min-width:2px;border-left:1px solid #ffffff26;display:flex;align-items:center;justify-content:center;padding:4px;cursor:pointer;overflow:hidden;transition:filter .15s,transform .15s}.map-segment:hover{filter:brightness(1.14)}.map-segment.active{outline:3px solid #fff9;outline-offset:-3px;z-index:2}.map-segment.selected{box-shadow:inset 0 0 0 3px var(--accent2)}.map-segment span{direction:rtl;text-align:center;font-size:11px;line-height:1.25;text-shadow:0 1px 2px #000;overflow:hidden}.map-time{position:absolute;bottom:2px;left:4px;font-size:10px;color:#fffbd0}.now-line{position:absolute;top:0;bottom:0;width:2px;background:#fff;z-index:7;box-shadow:0 0 8px #fff}.now-line:after{content:"الآن";position:absolute;top:2px;left:4px;direction:rtl;font-size:10px;background:#0009;padding:1px 4px;border-radius:4px}.map-scale{direction:ltr;display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:4px}.map-legend{direction:rtl;display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;color:var(--muted);font-size:12px}
+
+/* v5 markers / draggable boundaries */
+.event-marker{position:absolute;top:0;bottom:0;width:1px;background:#ffffff85;z-index:8;pointer-events:none}.event-marker .marker-label{position:absolute;top:3px;left:4px;transform:translateX(-2px);direction:rtl;white-space:nowrap;font-size:9px;background:#0b1218dd;border:1px solid #ffffff2e;padding:1px 4px;border-radius:5px;color:#f7fbff;max-width:120px;overflow:hidden;text-overflow:ellipsis}.boundary-handle{position:absolute;top:0;bottom:0;width:30px;transform:translateX(-15px);z-index:12;cursor:ew-resize;background:transparent;touch-action:none}.boundary-handle:before{content:"↔";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;color:#ffffff7a;background:#0b1218a8;border:1px solid #ffffff2a;border-radius:8px;padding:1px 3px;opacity:0;transition:opacity .12s,transform .12s}.boundary-handle:after{content:"";position:absolute;left:14px;top:18%;bottom:18%;width:2px;border-radius:2px;background:#ffffffb8;box-shadow:0 0 5px #000}.boundary-handle:hover:before,.boundary-handle.dragging:before{opacity:1;transform:translate(-50%,-50%) scale(1.05)}.boundary-handle:hover:after,.boundary-handle.dragging:after{background:var(--warn);width:3px}.boundary-handle.locked{cursor:not-allowed}.boundary-handle.locked:before{content:"🔒";opacity:.92;color:#fff;background:#542f35;border-color:#ff8a8a66}.boundary-handle.locked:after{background:#ff8a8a}.drag-ghost{position:absolute;top:0;bottom:0;width:3px;transform:translateX(-1.5px);z-index:24;background:var(--warn);box-shadow:0 0 11px #ffd37aaa;pointer-events:none}.drag-readout{position:absolute;top:50%;transform:translate(-50%,-50%);z-index:25;background:#0a1117f2;border:1px solid var(--warn);padding:5px 8px;border-radius:8px;font-size:11px;color:#fff;pointer-events:none;white-space:nowrap}.drag-readout small{display:block;color:#ffd37a;font-size:9px;margin-top:1px}.day-map.drag-active{cursor:ew-resize;box-shadow:inset 0 0 0 2px #ffd37a66}body.dragging-boundary{user-select:none;cursor:ew-resize!important}.range-sub{display:block;font-size:10px;color:#dbe7eb;margin-top:2px;opacity:.78}.marker-title{display:block;font-size:11px;color:var(--warn)}.lock-btn{padding:5px 8px;background:#485a65;color:#fff}.lock-btn.locked{background:#774b4b}.stage-row{grid-template-columns:72px minmax(180px,1fr) auto auto auto auto}.map-segment span.range-name{font-size:12px;font-weight:700;padding-top:14px}.map-segment .range-dur{position:absolute;top:2px;right:4px;font-size:9px;color:#ffffffc5}.map-segment .range-start{position:absolute;bottom:2px;left:4px;font-size:10px;color:#fffbd0}.map-help{direction:rtl;margin-top:7px;color:var(--muted);font-size:11px}.map-segment.workrange{box-shadow:inset 0 -4px 0 #6de1b066}
+/* v7 Planned vs Actual */
+.map-lane-title{direction:rtl;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0 5px}.map-lane-title strong{font-size:13px}.actual-map{height:66px;background:#0b1419;border-style:dashed}.actual-map .map-segment{opacity:.88}.actual-map .map-segment.inprogress{background:repeating-linear-gradient(45deg,#304a43,#304a43 8px,#3d6156 8px,#3d6156 16px)!important;outline:2px solid #6de1b099;outline-offset:-2px}.actual-map .map-segment span.range-name{padding-top:0;font-size:11px}.actual-boundary{position:absolute;top:0;bottom:0;width:2px;background:#6de1b0;z-index:8;box-shadow:0 0 7px #6de1b088}.actual-boundary:after{content:attr(data-time);position:absolute;bottom:2px;left:4px;font-size:9px;color:#d9fff0;white-space:nowrap}.actual-empty{direction:rtl;width:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}.actual-summary{font-size:11px;color:var(--muted)}.actual-chip{display:inline-flex;gap:4px;align-items:center;border:1px solid #4d6c65;background:#203b38;border-radius:16px;padding:2px 7px;font-size:10px;color:#d9fff0;white-space:nowrap}.actual-chip.late{border-color:#8b6452;background:#3a2d27;color:#ffe0c7}.actual-chip.early{border-color:#4c6e86;background:#233846;color:#d9efff}.actual-now-btn{padding:5px 8px;background:#2f6d5d;color:#fff}.actual-clear-btn{padding:5px 9px}.compare-grid{direction:rtl;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:8px}.compare-mini{background:#111d23;border:1px solid #304751;border-radius:9px;padding:7px;text-align:center}.compare-mini strong{display:block;color:var(--accent);font-size:16px}.alarm-started{background:#2e745f;color:#fff}
+/* week */
+.week-tabs{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.week-day{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:8px;cursor:pointer;min-height:82px}.week-day.current{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}.week-day.selected{outline:2px solid var(--accent2)}.week-day strong{display:block}.mini-bar{direction:ltr;display:flex;height:9px;border-radius:6px;overflow:hidden;margin-top:8px;background:#10181d}.mini-seg{height:100%}.week-date{font-size:11px;color:var(--muted)}
+/* calendar */
+.calendar-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}.weekday-head,.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.weekday-head div{text-align:center;color:var(--muted);font-size:12px}.day-cell{min-height:72px;border:1px solid var(--border);background:var(--panel2);border-radius:10px;padding:6px;cursor:pointer;position:relative;overflow:hidden}.day-cell.other{opacity:.35}.day-cell.today{border-color:var(--accent)}.day-cell.selected{outline:2px solid var(--accent2)}.day-cell .num{font-weight:bold}.day-cell .done{position:absolute;bottom:0;right:0;height:4px;background:var(--accent);width:0}.day-cell .micro{direction:ltr;display:flex;height:6px;border-radius:4px;overflow:hidden;margin-top:8px;background:#10181d}.day-cell .focus-mini{font-size:10px;color:var(--muted);margin-top:5px}
+/* year */
+.year-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.year-month{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:9px}.year-month h4{margin:0 0 6px;font-size:13px}.year-mini{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;direction:ltr}.year-dot{aspect-ratio:1;border-radius:2px;background:#34434c;cursor:pointer}.year-dot.out{visibility:hidden}.year-dot.hasplan{background:#496473}.year-dot.p25{background:#486f65}.year-dot.p50{background:#4e9278}.year-dot.p75{background:#59bd91}.year-dot.p100{background:#6de1b0}.year-dot.today{outline:1px solid #fff}.year-dot.selected{outline:2px solid var(--accent2)}
+/* stage list */
+.stage-list{display:grid;gap:7px;margin-top:10px}.stage-row{display:grid;grid-template-columns:72px minmax(180px,1fr) auto auto auto auto;align-items:center;gap:7px;background:var(--panel2);padding:7px;border-radius:10px}.stage-row.active{outline:2px solid var(--accent)}.stage-row.selected{box-shadow:inset 0 0 0 2px var(--accent2)}.sound-chip{font-size:11px;color:#d7e6ec;border:1px solid #4e626d;border-radius:20px;padding:2px 7px;white-space:nowrap}.sound-btn{padding:6px 9px;background:#536b78;color:#fff}.stage-color{width:11px;height:11px;border-radius:50%;display:inline-block}
+
+.target-strip{direction:rtl;display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:5px}.target-chip{display:inline-flex;align-items:center;gap:4px;border:1px solid #54707b;background:#17272f;border-radius:14px;padding:2px 7px;font-size:10px;color:#dfeef3}.target-chip.good{border-color:#4f7e69;background:#1d382e;color:#dcffef}.target-chip.behind{border-color:#8d6358;background:#3c2b28;color:#ffe0d8}.tiny-number{width:74px!important;padding:4px 6px!important;font-size:11px}.smart-hint{font-size:10px;color:var(--warn)}
+.backup-box{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.backup-box input[type=file]{max-width:250px;color:var(--muted)}
+.family-grid{display:grid;gap:8px}.family-track{display:grid;grid-template-columns:150px 1fr auto;gap:8px;align-items:center;background:var(--panel2);border:1px solid var(--border);border-radius:11px;padding:8px}.family-track.selected{outline:2px solid var(--accent2)}.family-track input{width:100%;min-width:0}.family-mini{direction:ltr;display:flex;height:22px;border-radius:7px;overflow:hidden;background:#10191f;border:1px solid #30444e}.family-mini .mini-seg{height:100%;position:relative}.family-mini .mini-seg b{display:none}.family-empty{color:var(--muted);font-size:11px;text-align:center;width:100%;direction:rtl}.family-editor{margin-top:12px;border-top:1px solid var(--border);padding-top:12px}.family-editor textarea{min-height:150px}.family-actions{display:flex;gap:7px;flex-wrap:wrap}.family-label{font-size:11px;color:var(--muted)}
+.check{display:flex;gap:9px;padding:7px 0;align-items:center;color:var(--ink)}.check input{width:19px;height:19px;accent-color:var(--accent)}
+.alarm-overlay{position:fixed;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:9999;padding:18px}.alarm-overlay.show{display:flex}.alarm-box{width:min(590px,100%);background:#202b34;border:2px solid var(--accent);border-radius:24px;padding:28px;text-align:center;box-shadow:0 24px 90px #0009}.alarm-box .alarm-time{font-size:clamp(44px,10vw,82px);font-weight:800;line-height:1.1}.alarm-box h2{font-size:clamp(26px,6vw,40px);margin:12px 0 12px}.alarm-box .sound-name{color:var(--warn);margin-bottom:18px}.alarm-pulse{animation:alarmPulse .55s ease-in-out infinite alternate}@keyframes alarmPulse{from{box-shadow:0 0 0 0 #6de1b055,0 24px 90px #0009}to{box-shadow:0 0 0 16px #6de1b000,0 24px 90px #0009}}
+@media(max-width:900px){.year-grid{grid-template-columns:repeat(2,1fr)}.week-tabs{grid-template-columns:repeat(4,1fr)}}@media(max-width:700px){.family-track{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wide{grid-column:auto}.stats{grid-template-columns:1fr 1fr}.week-tabs{grid-template-columns:repeat(2,1fr)}.year-grid{grid-template-columns:1fr}.stage-row{grid-template-columns:66px minmax(150px,1fr) auto auto auto}.stage-row .sound-chip{display:none}.day-map{height:102px}}
+
+/* v9 Mobile / PWA */
+.install-card{margin-bottom:14px;background:linear-gradient(135deg,#17272f,#18232c);border-color:#4a6b66}.install-card .install-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.install-badge{display:inline-flex;align-items:center;gap:6px;border:1px solid #4f7e69;border-radius:20px;padding:3px 9px;color:#dcffef;background:#1d382e;font-size:12px}.pwa-status{font-size:12px;color:var(--muted);margin-top:8px}.safe-bottom{padding-bottom:max(14px,env(safe-area-inset-bottom))}
+@media(max-width:700px){
+  main{padding:12px 10px calc(32px + env(safe-area-inset-bottom))}header{align-items:flex-start;margin-bottom:10px}h1{font-size:30px}.card{padding:13px;border-radius:14px}.grid{gap:10px}.row{gap:6px}.row.between{align-items:flex-start}.timer{font-size:clamp(54px,18vw,82px)}button{min-height:44px;padding:10px 13px}select,input[type=number],input[type=time],input[type=date],textarea{min-height:42px;font-size:16px}.buttons button{flex:1 1 120px}.stats{grid-template-columns:1fr 1fr}.map-shell{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:9px}.day-map,.map-scale{min-width:720px}.map-title,.map-lane-title,.map-help,.map-legend{min-width:720px}.week-tabs{grid-template-columns:repeat(2,1fr)}.weekday-head,.month-grid{min-width:650px}.calendar-head+div:has(.weekday-head){overflow-x:auto}.stage-row{grid-template-columns:62px minmax(150px,1fr) auto auto}.stage-row .sound-chip{display:none}.stage-row .lock-btn{grid-column:auto}.family-track{grid-template-columns:1fr}.compare-grid{grid-template-columns:1fr 1fr}.backup-box>*{max-width:100%}.alarm-overlay{padding:10px}.alarm-box{padding:20px 14px;border-radius:18px}.install-card .install-actions button{flex:1 1 145px}.year-grid{grid-template-columns:1fr}.family-actions button{flex:1 1 130px}
+}
+@media(max-width:430px){.stats{grid-template-columns:1fr}.compare-grid{grid-template-columns:1fr}.week-tabs{grid-template-columns:1fr 1fr}.pill{font-size:11px}.stage-row{grid-template-columns:58px minmax(130px,1fr) auto}.stage-row .actual-now-btn{grid-column:1/-1}.stage-row .sound-btn{display:none}}
+
+</style>
+</head>
+<body><main>
+<header>
+  <div><h1>خريطة اليوم 🌿</h1><p>نسخة v9: خريطة اليوم كاملة مع Plan/Actual وSmart Ripple، وأصبحت Responsive وقابلة للتحويل إلى PWA على الموبايل.</p></div>
+  <span class="pill" id="todayPill"></span>
+</header>
+<div class="grid">
+<section class="card wide install-card" id="installCard">
+  <div class="row between"><div><h2>نسخة الموبايل / PWA</h2><p>نفس خريطة اليوم، لكن بواجهة متجاوبة وقابلة للتثبيت عند تشغيلها من رابط HTTPS.</p></div><span class="install-badge">📱 Mobile Ready</span></div>
+  <div class="install-actions"><button id="installApp" hidden>تثبيت التطبيق</button><button class="secondary" id="enableNotifications">تفعيل إشعارات الموبايل</button><button class="ghost" id="pwaHelp">طريقة التثبيت</button></div>
+  <div class="pwa-status" id="pwaStatus">جارٍ فحص وضع التشغيل…</div>
+</section>
+
+<section class="card wide">
+  <div class="row between"><div><h2>خريطة اليوم</h2><p id="selectedDateLabel"></p></div><div class="row"><button class="ghost" id="prevDay">اليوم السابق</button><button class="secondary" id="goToday">اليوم</button><button class="ghost" id="nextDay">اليوم التالي</button></div></div>
+  <div class="map-shell">
+    <div class="map-title"><strong id="fullRangeLabel">Full Day Range</strong><span class="small">الـ Marker = التنبيه • الـ Range = المرحلة</span></div>
+    <div class="row" style="direction:rtl;margin-bottom:9px">
+      <label>السحب <select id="dragMode"><option value="resize">تحريك الحد فقط</option><option value="ripple">Ripple — حرّك ما بعده</option><option value="smart">Smart Ripple — حافظ على المواعيد الثابتة</option></select></label>
+      <label>Snap <select id="snapMin"><option value="1">1 دقيقة</option><option value="5" selected>5 دقائق</option><option value="10">10 دقائق</option><option value="15">15 دقيقة</option></select></label>
+      <span class="small">🔒 الحد المقفول لا يتحرك</span><span class="smart-hint" id="smartHint"></span><button class="ghost" id="undoMap" disabled>↶ تراجع عن آخر تحريك</button>
+    </div>
+    <div class="map-lane-title"><strong>PLAN — المخطط</strong><span class="small">اسحب الحدود لتعديل الخطة</span></div>
+    <div class="day-map" id="dayMap"></div><div class="map-help">اسحب من مساحة أوسع حول الخط. أثناء السحب يتحرك المؤشر بحرية، وعند الإفلات يثبت على قيمة الـ Snap المختارة.</div>
+    <div class="map-lane-title"><strong>ACTUAL — التنفيذ الفعلي</strong><div class="row"><span class="actual-summary" id="actualSummary">لم يبدأ التسجيل.</span><button class="ghost actual-clear-btn" id="clearActual">مسح Actual لليوم</button></div></div>
+    <div class="day-map actual-map" id="actualMap"></div>
+    <div class="map-scale"><span id="mapStart">--:--</span><span id="mapEnd">--:--</span></div>
+    <div class="map-legend" id="mapLegend"></div>
+  </div>
+  <div class="week-tabs" id="weekTabs" style="margin-top:12px"></div>
+</section>
+
+<section class="card">
+  <h2>المؤقت التلقائي — اليوم</h2>
+  <div class="row">
+    <label>النظام <select id="preset"><option value="20,5">20 عمل / 5 راحة</option><option value="40,10">40 عمل / 10 راحة</option><option value="30,5">30 عمل / 5 راحة</option><option value="custom">مخصص</option></select></label>
+    <label>عمل <input id="work" type="number" min="1" max="180" value="20"> د</label>
+    <label>راحة <input id="rest" type="number" min="1" max="60" value="5"> د</label>
+    <label>انتقال <select id="transition"><option value="40">40 ثانية</option><option value="60" selected>دقيقة</option></select></label>
+  </div>
+  <button class="secondary" id="apply" style="margin-top:9px">تطبيق المدة</button>
+  <div class="phase" id="phase">وقت الشغل</div><div class="timer" id="clock">20:00</div><div class="progress"><div id="bar"></div></div>
+  <div class="buttons"><button id="start">ابدأ</button><button class="secondary" id="skip">المرحلة التالية</button><button class="warn" id="reset">إعادة ضبط</button></div>
+  <p id="timerStatus" role="status">المؤقت جاهز.</p>
+  <div class="row"><label><input type="checkbox" id="sound" checked> الصوت</label><label>القوة <select id="volume"><option value="0.16">متوسط</option><option value="0.28" selected>قوي</option><option value="0.42">قوي جدًا</option></select></label><label><input type="checkbox" id="speak" checked> نطق اسم المرحلة</label></div>
+  <p class="small">نهاية الشغل ونهاية الراحة لهما صوتان مختلفان. وكل مرحلة في جدول اليوم لها بصمة صوتية مختلفة أيضًا.</p>
+</section>
+
+<section class="card">
+  <h2>الإنجاز بالأرقام</h2>
+  <div class="stats"><div class="stat"><small>شغل صافي اليوم</small><strong id="focused">00:00</strong><small>ساعة : دقيقة</small></div><div class="stat"><small>هدف الشغل</small><strong id="goalPct">0%</strong><small id="goalText">من 8 ساعات</small></div></div>
+  <div class="progress" style="margin:13px 0"><div id="goalBar"></div></div>
+  <label>هدف العمل الصافي <input type="number" id="goal" min="1" max="16" step=".5" value="8"> ساعة</label>
+  <div class="stat" style="margin:13px 0"><small>الفريمات المتوقعة حسب وقت الشغل</small><strong id="expectedFrames">0 فريم</strong><small id="expectedFramesText"></small></div>
+  <label>فريمات جاهزة للتسليم — إنت اللي تدخلها <input type="number" id="frames" min="0" step="1" value="0" style="width:115px"></label>
+  <p id="framesInfo"></p><div class="note" id="rangeTargetSummary">لم تُحدد أهداف للمراحل بعد.</div><div class="buttons" style="justify-content:flex-start"><button class="secondary" id="sumRangeFrames">اجمع Actual المراحل إلى إجمالي اليوم</button><button class="secondary" id="newDay">تصفير إنجاز اليوم</button></div>
+</section>
+
+<section class="card wide">
+  <div class="row between"><div><h2>خطة اليوم المحدد</h2><p>عدّل الخطة لأي يوم. كل تاريخ يحتفظ بنسخته، وتقدر تنسخها لباقي الأسبوع أو تجعلها قالبًا لنفس يوم الأسبوع.</p></div><input type="date" id="datePicker"></div>
+  <div class="grid" style="grid-template-columns:1.08fr .92fr">
+    <div><p class="small">الصيغة: <b>الوقت | نص التنبيه | اسم المرحلة | LOCK اختياري</b>. مثال: <b>06:30 | بداية اليوم | شغل + راحة | LOCK</b></p><textarea id="schedule" spellcheck="false" aria-label="قائمة التنبيهات والمراحل"></textarea>
+      <div class="buttons" style="justify-content:flex-start"><button id="saveSchedule">حفظ خطة اليوم</button><button class="secondary" id="copyWeek">نسخها لأيام الأسبوع الحالي</button><button class="ghost" id="saveWeekdayTemplate">اجعلها قالبًا لهذا اليوم من الأسبوع</button></div>
+      <label><input type="checkbox" id="autoPause" checked> أوقف مؤقت الشغل تلقائيًا عند تنبيه مرحلة في يوم اليوم الحالي</label>
+      <div class="note" id="reminderStatus">اختر يومًا وعدّل خطته.</div>
+    </div>
+    <div><div class="row between"><h3>Markers + Ranges</h3><span class="small">🔊 صوت • 🔒 قفل • ⏱ وقت فعلي • 🎯 Target/Actual</span></div><div class="stage-list" id="stageList"></div></div>
+  </div>
+</section>
+
+<section class="card wide">
+  <div class="calendar-head"><div><h2>خريطة الشهر</h2><p>اضغط أي يوم لتحميل خطته. الشريط الصغير داخل اليوم هو خريطة المراحل، والخط السفلي يوضح نسبة هدف الشغل المسجلة.</p></div><div class="row"><button class="ghost" id="prevMonth">‹</button><strong id="monthTitle"></strong><button class="ghost" id="nextMonth">›</button></div></div>
+  <div class="weekday-head" id="monthWeekHead"></div><div class="month-grid" id="monthGrid"></div>
+</section>
+
+<section class="card wide">
+  <div class="calendar-head"><div><h2>خريطة السنة</h2><p>كل مربع يوم. كلما زاد الإنجاز المسجل زادت إضاءته. اضغط أي يوم للانتقال إليه في خريطة اليوم.</p></div><div class="row"><button class="ghost" id="prevYear">‹</button><strong id="yearTitle"></strong><button class="ghost" id="nextYear">›</button></div></div>
+  <div class="year-grid" id="yearGrid"></div>
+</section>
+
+
+<section class="card wide">
+  <div class="row between"><div><h2>Family Tracks — خريطة الأسرة</h2><p>كل فرد له Track مستقل لنفس التاريخ. اضغط على المسار لتحريره، أو انسخ له خطة اليوم الرئيسية كبداية.</p></div><span class="pill">Timeline للأسرة</span></div>
+  <div class="family-grid" id="familyTracks"></div>
+  <div class="family-editor">
+    <div class="row between"><div><h3 id="familyEditorTitle">تحرير المسار</h3><span class="family-label">نفس صيغة خطة اليوم: الوقت | التنبيه | اسم المرحلة | LOCK اختياري</span></div><div class="family-actions"><button class="secondary" id="copyMainToFamily">نسخ خطة اليوم الرئيسية</button><button id="saveFamilyTrack">حفظ المسار</button><button class="warn" id="clearFamilyTrack">مسح خطة المسار</button></div></div>
+    <textarea id="familySchedule" spellcheck="false" aria-label="خطة فرد الأسرة"></textarea>
+  </div>
+</section>
+
+<section class="card wide">
+  <div class="row between"><div><h2>النسخة الاحتياطية</h2><p>صدّر كل الخطط والـActual والأهداف وبيانات الشهر والسنة إلى ملف JSON واحد، واسترجعه عند الحاجة.</p></div><div class="backup-box"><button id="exportBackup">تصدير Backup</button><label class="ghost" style="padding:8px 12px;border-radius:11px;cursor:pointer">استيراد Backup <input type="file" id="importBackup" accept="application/json,.json" hidden></label></div></div>
+  <div class="note" id="backupStatus">البيانات محفوظة محليًا في المتصفح. الـBackup يحميك لو مسحت بيانات المتصفح أو نقلت البرنامج لجهاز آخر.</div>
+</section>
+
+<section class="card wide">
+  <h2>مراجعة نهاية اليوم</h2><div class="row" id="checks"><label class="check"><input type="checkbox" data-check="faith"> عملت اللي عليّ تجاه ربنا</label><label class="check"><input type="checkbox" data-check="work"> أنجزت المهمة المهمة</label><label class="check"><input type="checkbox" data-check="health"> اهتميت بنفسي وصحتي وراحتي</label><label class="check"><input type="checkbox" data-check="family"> خصصت وقتًا حقيقيًا لأسرتي</label></div>
+  <div class="note">الفكرة مش ملء كل دقيقة، بل إن اليوم يبقى له شكل واضح: واجب، راحة، أسرة، صحة، ووقت طوارئ أو وقت شخصي.</div>
+  <p class="small">مهم: تنبيهات المتصفح تعمل طالما الصفحة مفتوحة والجهاز مستيقظ. للمواعيد التي لا تحتمل أن تفوت، احتفظ بمنبه الهاتف أيضًا.</p>
+</section>
+</div></main>
+
+<div class="alarm-overlay" id="alarmOverlay" role="alertdialog" aria-modal="true" aria-labelledby="alarmLabel"><div class="alarm-box alarm-pulse"><div class="alarm-time" id="alarmTime">--:--</div><h2 id="alarmLabel">تنبيه</h2><div class="sound-name" id="alarmSoundName"></div><p id="alarmSub">حان موعد المرحلة التالية.</p><div class="buttons"><button class="alarm-started" id="startedNow">بدأت المرحلة الآن</button><button class="secondary" id="dismissAlarm">إيقاف التنبيه</button><button class="ghost" id="snoozeAlarm">غفوة 5 دقائق</button></div></div></div>
+
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const KEY='family_day_timer_v8', OLD_KEY='family_day_timer_v7';
+const DEFAULT_TEXT=`06:30 | بداية اليوم | شغل + راحة | LOCK
+09:30 | تجهيز الفطار والمشي | تجهيز الفطار
+10:00 | الفطار | الفطار
+10:30 | المشي | المشي
+12:00 | القيلولة | القيلولة | LOCK
+13:00 | العودة للشغل | شغل + راحة
+13:30 | تجهيز الغداء | تجهيز الغداء
+14:00 | الغداء | بعد الغداء / شغل + راحة
+18:00 | العشاء | وقت مسائي / أسرة
+20:00 | أوبر إذا لزم | أوبر إذا لزم
+22:00 | الرجوع والهدوء | هدوء وتجهيز للنوم
+23:00 | النوم | نهاية اليوم | LOCK`;
+const AR_DAYS=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const COLORS=['#3f6f8a','#6a658f','#6a7f53','#8a6b48','#5e7f78','#7d5d73','#52708d','#857153','#536f65','#765f50','#555f80','#6c7860','#7b5960','#4e7480'];
+const SOUND_NAMES=['صعود','جرسان','نبضتان','هبوط','ثلاثية','نداء','قوس','قفزة','موجة','نقرات','جرس طويل','إغلاق','تنبيه 13','تنبيه 14'];
+const soundPatterns=[
+  {f:[620,790,980],d:.18,g:.14,type:'sine'}, {f:[880,660,880,660],d:.16,g:.12,type:'square'},
+  {f:[720,720,980],d:.20,g:.13,type:'triangle'}, {f:[980,820,650],d:.19,g:.14,type:'sine'},
+  {f:[520,760,1040,760],d:.15,g:.11,type:'square'}, {f:[440,880,440,880,1100],d:.12,g:.10,type:'triangle'},
+  {f:[700,920,700],d:.24,g:.16,type:'sawtooth'}, {f:[560,840,1120],d:.17,g:.13,type:'square'},
+  {f:[840,620,840,1020],d:.18,g:.13,type:'sine'}, {f:[1000,1000,760,1000],d:.11,g:.08,type:'square'},
+  {f:[600,900,1200,900,600],d:.14,g:.11,type:'triangle'}, {f:[900,700,500,360],d:.20,g:.14,type:'sine'},
+  {f:[680,980,680,1180],d:.15,g:.12,type:'square'}, {f:[540,720,900,1080],d:.16,g:.12,type:'triangle'}
+];
+function isoDate(d=new Date()){let y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
+function fromISO(s){let [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
+function addDays(s,n){let d=fromISO(s);d.setDate(d.getDate()+n);return isoDate(d)}
+function sameDay(a,b){return a===b}
+function inferRange(alert){let a=String(alert||'').trim();if(/بداية اليوم|العودة للشغل/.test(a))return 'شغل + راحة';if(/تجهيز الفطار/.test(a))return 'تجهيز الفطار';if(a==='الغداء')return 'بعد الغداء / شغل + راحة';if(a==='العشاء')return 'وقت مسائي / أسرة';if(/الرجوع والهدوء/.test(a))return 'هدوء وتجهيز للنوم';if(a==='النوم')return 'نهاية اليوم';return a||'مرحلة'}
+function parseSchedule(txt){let lines=txt.split(/\r?\n/).map(x=>x.trim()).filter(Boolean),out=[];for(let i=0;i<lines.length;i++){let parts=lines[i].split('|').map(x=>x.trim()),m=(parts[0]||'').match(/^([01]\d|2[0-3]):([0-5]\d)$/);if(!m||!parts[1])throw new Error(`السطر ${i+1} غير صحيح. استخدم 09:30 | التنبيه | اسم المرحلة`);let flag=(parts[3]||'').toLowerCase();out.push({time:`${m[1]}:${m[2]}`,alert:parts[1],range:parts[2]||inferRange(parts[1]),locked:/lock|locked|قفل|🔒/.test(flag)})}out.sort((a,b)=>a.time.localeCompare(b.time));for(let i=1;i<out.length;i++)if(out[i].time===out[i-1].time)throw new Error(`يوجد توقيت مكرر: ${out[i].time}`);return out}
+function toMinutes(t){let [h,m]=t.split(':').map(Number);return h*60+m}
+function scheduleToText(ev){return ev.map(e=>`${e.time} | ${e.alert} | ${e.range}${e.locked?' | LOCK':''}`).join('\n')}
+function safeParse(txt){try{return parseSchedule(txt)}catch{return parseSchedule(DEFAULT_TEXT)}}
+let old={};try{old=JSON.parse(localStorage.getItem(OLD_KEY)||'{}')||{}}catch{}
+let saved={};try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch{}
+const today=()=>isoDate();
+let state={
+  selectedDate:today(), monthCursor:today().slice(0,7), yearCursor:Number(today().slice(0,4)),
+  work:old.work||20,rest:old.rest||5,transitionSec:old.transitionSec||60,phase:'work',nextPhaseAfterTransition:'break',remainMs:(old.work||20)*60000,running:false,lastAt:0,
+  goal:old.goal||8,sound:old.sound!==false,volume:old.volume||0.28,speak:old.speak!==false,autoPause:old.autoPause!==false,
+  plans:old.plans||{},weekdayTemplates:old.weekdayTemplates||{},stats:old.stats||{},actuals:old.actuals||{},rangeTargets:old.rangeTargets||{},rangeActuals:old.rangeActuals||{},familyTracks:old.familyTracks||null,lastReminders:{},dragMode:'resize',snapMin:5,...saved
+};
+if(!state.plans||typeof state.plans!=='object')state.plans={};if(!state.weekdayTemplates||typeof state.weekdayTemplates!=='object')state.weekdayTemplates={};if(!state.stats||typeof state.stats!=='object')state.stats={};if(!state.actuals||typeof state.actuals!=='object')state.actuals={};if(!state.rangeTargets||typeof state.rangeTargets!=='object')state.rangeTargets={};if(!state.rangeActuals||typeof state.rangeActuals!=='object')state.rangeActuals={};if(!state.lastReminders||typeof state.lastReminders!=='object')state.lastReminders={};
+if(!Array.isArray(state.familyTracks))state.familyTracks=[{id:'me',name:'أنا',plans:{}},{id:'wife',name:'الزوجة',plans:{}},{id:'son1',name:'الابن 1',plans:{}},{id:'son2',name:'الابن 2',plans:{}},{id:'son3',name:'الابن 3',plans:{}}];state.familyTracks.forEach(t=>{if(!t.plans||typeof t.plans!=='object')t.plans={}});if(!state.selectedFamilyId||!state.familyTracks.some(t=>t.id===state.selectedFamilyId))state.selectedFamilyId=state.familyTracks[0].id;
+if(!state.plans[today()]&&old.schedule)state.plans[today()]=old.schedule;
+function defaultForDate(dateStr){let wd=fromISO(dateStr).getDay();return state.weekdayTemplates[wd]||DEFAULT_TEXT}
+function getPlanText(dateStr){return state.plans[dateStr]||defaultForDate(dateStr)}
+function setPlanText(dateStr,txt){state.plans[dateStr]=txt}
+function getStats(dateStr){if(!state.stats[dateStr])state.stats[dateStr]={focusMs:0,frames:0,checks:{}};return state.stats[dateStr]}
+function getActual(dateStr){if(!state.actuals[dateStr])state.actuals[dateStr]={times:{}};if(!state.actuals[dateStr].times)state.actuals[dateStr].times={};return state.actuals[dateStr]}
+function getRangeTargets(dateStr){if(!state.rangeTargets[dateStr])state.rangeTargets[dateStr]={};return state.rangeTargets[dateStr]}
+function getRangeActuals(dateStr){if(!state.rangeActuals[dateStr])state.rangeActuals[dateStr]={};return state.rangeActuals[dateStr]}
+function getFamilyTrack(id=state.selectedFamilyId){return state.familyTracks.find(t=>t.id===id)||state.familyTracks[0]}
+function getFamilyPlan(track,dateStr){if(track?.plans?.[dateStr])return track.plans[dateStr];if(track?.id==='me')return getPlanText(dateStr);return ''}
+function nowTime(){let d=new Date();return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
+function actualDelta(planTime,actualTime){return toMinutes(actualTime)-toMinutes(planTime)}
+function deltaLabel(delta){if(delta===0)return 'في الموعد';let a=Math.abs(delta);return `${delta>0?'متأخر':'مبكر'} ${a}د`}
+function recordActualBoundary(dateStr,index,time=nowTime()){let events=safeParse(getPlanText(dateStr));if(index<0||index>=events.length)return;let a=getActual(dateStr);a.times[index]=time;$('reminderStatus').textContent=`تم تسجيل ${events[index].alert} فعليًا عند ${time} (${deltaLabel(actualDelta(events[index].time,time))}).`;renderPlanner();persist()}
+function clearActualDay(dateStr){delete state.actuals[dateStr];renderPlanner();persist()}
+if(old.focusMs||old.frames||old.checks){let s=getStats(today());if(!s.focusMs)s.focusMs=old.focusMs||0;if(!s.frames)s.frames=old.frames||0;if(!Object.keys(s.checks||{}).length)s.checks=old.checks||{}}
+let audioCtx=null,alarmNodes=[],alarmStopTimer=null,currentAlarmLabel='',currentAlarmIndex=0,snoozes=[];
+function ensureAudio(){if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume()}
+function stopAlarmSound(){alarmNodes.forEach(n=>{try{n.stop?.();n.disconnect?.()}catch{}});alarmNodes=[];if(alarmStopTimer){clearTimeout(alarmStopTimer);alarmStopTimer=null}}
+function playPattern(index,{long=false}={}){if(!$('sound').checked)return;try{ensureAudio();let p=soundPatterns[((index%soundPatterns.length)+soundPatterns.length)%soundPatterns.length],t=audioCtx.currentTime,vol=Number($('volume').value||state.volume||.28),cycles=long?3:1,offset=0;for(let c=0;c<cycles;c++){for(let i=0;i<p.f.length;i++){let osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),at=t+offset+i*p.d;osc.type=p.type;osc.frequency.value=p.f[i];gain.gain.setValueAtTime(.0001,at);gain.gain.exponentialRampToValueAtTime(Math.max(.03,vol*(long?.95:.65)),at+.01);gain.gain.exponentialRampToValueAtTime(.0001,at+p.g);osc.connect(gain).connect(audioCtx.destination);osc.start(at);osc.stop(at+p.g+.03);alarmNodes.push(osc)}offset+=p.f.length*p.d+(long?.32:.08)}}catch{}}
+function phaseSound(target){playPattern(target==='break'?0:3)}
+function showAlarm(label,timeText,index){currentAlarmLabel=label;currentAlarmIndex=index;$('alarmTime').textContent=timeText||new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});$('alarmLabel').textContent=label;$('alarmSoundName').textContent=`الصوت: ${SOUND_NAMES[index%SOUND_NAMES.length]}`;$('alarmOverlay').classList.add('show')}
+function stageAlarm(label,timeText,index){showAlarm(label,timeText,index);stopAlarmSound();playPattern(index,{long:true});alarmStopTimer=setTimeout(stopAlarmSound,9000);sendSystemNotification(label,timeText||nowTime());if($('speak').checked&&'speechSynthesis'in window){try{setTimeout(()=>{let u=new SpeechSynthesisUtterance(label);u.lang='ar-EG';u.rate=.9;u.volume=1;window.speechSynthesis.cancel();window.speechSynthesis.speak(u)},650)}catch{}}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify({...state,running:false,lastAt:0}))}catch{}}
+function minsLabel(ms){let n=Math.floor(ms/60000);return `${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`}
+function phaseDurationMs(){if(state.phase==='work')return state.work*60000;if(state.phase==='break')return state.rest*60000;return state.transitionSec*1000}
+function formatDateAR(dateStr){return fromISO(dateStr).toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
+function eventColors(events){return events.map((_,i)=>COLORS[i%COLORS.length])}
+function activeEventIndex(events,dateStr,now=new Date()){if(!sameDay(dateStr,today())||events.length<2)return -1;let mins=now.getHours()*60+now.getMinutes()+now.getSeconds()/60;for(let i=0;i<events.length-1;i++){let a=toMinutes(events[i].time),b=toMinutes(events[i+1].time);if(mins>=a&&mins<b)return i}return -1}
+function fmtMinutes(n){n=Math.max(0,Math.min(1439,Math.round(n)));return `${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`}
+function rangeDuration(a,b){let m=Math.max(0,toMinutes(b)-toMinutes(a));return m>=60?`${Math.floor(m/60)}س ${m%60?m%60+'د':''}`:`${m}د`}
+function saveEventsForSelected(events,msg='تم تحديث الخريطة.'){setPlanText(state.selectedDate,scheduleToText(events));$('schedule').value=getPlanText(state.selectedDate);$('reminderStatus').textContent=msg;renderPlanner();persist()}
+let dragState=null,lastMapUndo=null;
+function setUndoEnabled(){let b=$('undoMap');if(b)b.disabled=!lastMapUndo}
+function dragTimesFromRaw(ds,rawMin){let idx=ds.index,times=[...ds.originTimes],snap=Math.max(1,ds.snap||1),commit=Math.round(rawMin/snap)*snap;
+  if(ds.mode==='resize'){
+    let lo=times[idx-1]+snap,hi=times[idx+1]-snap;commit=Math.max(lo,Math.min(hi,commit));times[idx]=commit;ds.absorbLabel='';
+  }else if(ds.mode==='ripple'){
+    let delta=commit-times[idx],stop=times.length;
+    for(let j=idx+1;j<times.length;j++){if(ds.events[j].locked){stop=j;break}}
+    if(stop<times.length){let maxDelta=times[stop]-snap-times[stop-1];delta=Math.min(delta,maxDelta)}
+    delta=Math.max(delta,-times[idx]+times[idx-1]+snap);
+    if(stop===times.length)delta=Math.min(delta,1439-times.at(-1));
+    commit=times[idx]+delta;for(let j=idx;j<stop;j++)times[j]+=delta;ds.absorbLabel='';
+  }else{
+    // Smart Ripple: move forward until a flexible "buffer" range or the range before the next locked marker; keep that marker fixed.
+    let wanted=commit-times[idx],lockIndex=times.length-1;
+    for(let j=idx+1;j<times.length;j++){if(ds.events[j].locked){lockIndex=j;break}}
+    let absorbRange=-1;
+    for(let r=idx;r<lockIndex;r++){if(/طوارئ|احتياطي|مرن|شخصي/.test(ds.events[r].range||'')){absorbRange=r;break}}
+    if(absorbRange<idx){for(let r=idx;r<lockIndex;r++){if(/أسرة|مسائي/.test(ds.events[r].range||'')){absorbRange=r;break}}}
+    if(absorbRange<idx)absorbRange=Math.max(idx,lockIndex-1);
+    let absorbEnd=absorbRange+1;
+    let delta=wanted;
+    // Positive delta shrinks the absorbing range; negative delta expands it. Keep at least one snap unit.
+    let originalAbsorb=times[absorbEnd]-times[absorbRange];
+    if(delta>0)delta=Math.min(delta,Math.max(0,originalAbsorb-snap));
+    delta=Math.max(delta,-times[idx]+times[idx-1]+snap);
+    for(let j=idx;j<=absorbRange;j++)times[j]+=delta;
+    // protect ordering up to the fixed end
+    for(let j=1;j<times.length;j++)if(times[j]<=times[j-1])times[j]=times[j-1]+snap;
+    commit=times[idx];ds.absorbLabel=ds.events[absorbRange]?.range||'';
+  }
+  return {times,commit};
+}
+function beginBoundaryDrag(ev,index,events,start,total,map){
+  ev.preventDefault();ev.stopPropagation();
+  if(events[index].locked){$('reminderStatus').textContent='هذا الحد مقفول 🔒. افتح القفل من قائمة Markers + Ranges أولًا.';return}
+  ensureAudio();
+  const r=map.getBoundingClientRect(),handle=ev.currentTarget,ghost=document.createElement('div'),readout=document.createElement('div');
+  ghost.className='drag-ghost';readout.className='drag-readout';map.append(ghost,readout);
+  handle.classList.add('dragging');map.classList.add('drag-active');document.body.classList.add('dragging-boundary');
+  dragState={index,events:events.map(x=>({...x})),start,total,map,handle,rect:r,originTimes:events.map(e=>toMinutes(e.time)),mode:$('dragMode')?.value||state.dragMode||'resize',snap:Number($('snapMin')?.value||state.snapMin||5),ghost,readout,lastClientX:ev.clientX,raf:0,previewTimes:null};
+  window.addEventListener('pointermove',onBoundaryMove,{passive:false});
+  window.addEventListener('pointerup',endBoundaryDrag,{once:true});
+  window.addEventListener('pointercancel',endBoundaryDrag,{once:true});
+  onBoundaryMove(ev);
+}
+function paintBoundaryDrag(){
+  let ds=dragState;if(!ds)return;ds.raf=0;
+  let x=Math.max(0,Math.min(ds.rect.width,ds.lastClientX-ds.rect.left)),raw=ds.start+(x/ds.rect.width)*ds.total;
+  let idx=ds.index,prev=ds.originTimes[idx-1],next=ds.originTimes[idx+1];
+  if(ds.mode==='resize') raw=Math.max(prev+1,Math.min(next-1,raw));
+  let result=dragTimesFromRaw(ds,raw);ds.previewTimes=result.times;
+  let rawPct=(raw-ds.start)/ds.total*100,commitPct=(result.commit-ds.start)/ds.total*100;
+  ds.ghost.style.left=`${Math.max(0,Math.min(100,rawPct))}%`;
+  ds.readout.style.left=`${Math.max(2,Math.min(98,rawPct))}%`;
+  let rawText=fmtMinutes(raw),snapText=fmtMinutes(result.commit),delta=result.commit-ds.originTimes[idx];
+  ds.readout.innerHTML=`${rawText}<small>يثبت: ${snapText}${ds.mode==='ripple'&&delta?` • Ripple ${delta>0?'+':''}${delta}د`:ds.mode==='smart'&&delta?` • Smart ${delta>0?'+':''}${delta}د${ds.absorbLabel?' • يمتصها: '+ds.absorbLabel:''}`:''}</small>`;
+}
+function onBoundaryMove(ev){if(!dragState)return;ev.preventDefault();dragState.lastClientX=ev.clientX;if(!dragState.raf)dragState.raf=requestAnimationFrame(paintBoundaryDrag)}
+function cleanupBoundaryDrag(ds){if(!ds)return;if(ds.raf)cancelAnimationFrame(ds.raf);window.removeEventListener('pointermove',onBoundaryMove);ds.handle?.classList.remove('dragging');ds.map?.classList.remove('drag-active');document.body.classList.remove('dragging-boundary');ds.ghost?.remove();ds.readout?.remove()}
+function endBoundaryDrag(){
+  if(!dragState)return;let ds=dragState;paintBoundaryDrag();cleanupBoundaryDrag(ds);
+  if(ds.previewTimes){
+    let events=ds.events.map((e,i)=>({...e,time:fmtMinutes(ds.previewTimes[i])}));
+    let oldText=getPlanText(state.selectedDate),newText=scheduleToText(events);
+    if(newText!==oldText){lastMapUndo={date:state.selectedDate,text:oldText};setUndoEnabled();saveEventsForSelected(events,`تم تحريك الحد إلى ${events[ds.index].time}.`)}else renderDayMap();
+  }else renderDayMap();
+  dragState=null;
+}
+function renderDayMap(previewEvents=null,isPreview=false){let dateStr=state.selectedDate,events=previewEvents||safeParse(getPlanText(dateStr)),map=$('dayMap');map.innerHTML='';if(events.length<2){map.textContent='أضف مرحلتين على الأقل.';return}let start=toMinutes(events[0].time),end=toMinutes(events[events.length-1].time);if(end<=start)end=start+1;let total=end-start,colors=eventColors(events),active=activeEventIndex(events,dateStr);for(let i=0;i<events.length-1;i++){let a=toMinutes(events[i].time),b=toMinutes(events[i+1].time),seg=document.createElement('div');seg.className='map-segment'+(i===active?' active':'')+(i===selectedStageIndex?' selected':'')+(/شغل/.test(events[i].range)?' workrange':'');seg.style.flex=`${Math.max(1,b-a)} 1 0`;seg.style.background=colors[i];seg.dataset.index=i;seg.title=`${events[i].time} ${events[i].alert}\n${events[i].range} → ${events[i+1].time}`;let rt=getRangeTargets(dateStr),ra=getRangeActuals(dateStr),tg=Number(rt[i]||0),ac=Number(ra[i]||0),tag=tg?`<em class="target-chip ${ac>=tg&&ac?'good':ac?'behind':''}" style="position:absolute;bottom:2px;right:4px;font-style:normal">🎯 ${tg}${ac?' / '+ac:''}</em>`:'';seg.innerHTML=`<span class="range-name">${events[i].range}</span><small class="range-dur">${rangeDuration(events[i].time,events[i+1].time)}</small><b class="range-start">${events[i].time}</b>${tag}`;seg.onclick=()=>selectStage(i);map.append(seg)}
+for(let i=0;i<events.length;i++){let pos=(toMinutes(events[i].time)-start)/total*100,marker=document.createElement('div');marker.className='event-marker';marker.style.left=`${pos}%`;marker.innerHTML=`<span class="marker-label">${events[i].alert}</span>`;map.append(marker);if(i>0&&i<events.length-1){let h=document.createElement('div');h.className='boundary-handle'+(events[i].locked?' locked':'');h.style.left=`${pos}%`;h.title=events[i].locked?`🔒 ${events[i].time} — ${events[i].alert}`:`اسحب: ${events[i].time} — ${events[i].alert}`;h.onpointerdown=(ev)=>beginBoundaryDrag(ev,i,events,start,total,map);map.append(h)}}
+if(sameDay(dateStr,today())){let now=new Date(),mins=now.getHours()*60+now.getMinutes()+now.getSeconds()/60;if(mins>=start&&mins<=end){let line=document.createElement('div');line.className='now-line';line.style.left=`${((mins-start)/total)*100}%`;map.append(line)}}$('mapStart').textContent=events[0].time;$('mapEnd').textContent=events[events.length-1].time;$('fullRangeLabel').textContent=`Full Day Range: ${events[0].time} → ${events[events.length-1].time}`;$('mapLegend').innerHTML=events.slice(0,-1).map((e,i)=>`<span><i class="stage-color" style="background:${colors[i]}"></i> ${e.range}</span>`).join('');if(!isPreview){state.dragMode=$('dragMode')?.value||state.dragMode;state.snapMin=Number($('snapMin')?.value||state.snapMin||5)}}
+function renderActualMap(){
+  let map=$('actualMap');if(!map)return;map.innerHTML='';let dateStr=state.selectedDate,events=safeParse(getPlanText(dateStr));
+  if(events.length<2){map.innerHTML='<div class="actual-empty">لا توجد خطة كافية.</div>';return}
+  let start=toMinutes(events[0].time),end=toMinutes(events.at(-1).time),total=Math.max(1,end-start),a=getActual(dateStr),times=a.times||{},keys=Object.keys(times).map(Number).filter(i=>i>=0&&i<events.length).sort((x,y)=>x-y);
+  if(!keys.length){map.innerHTML='<div class="actual-empty">لم يتم تسجيل التنفيذ بعد — عند بدء أي مرحلة اضغط ⏱ الآن أو «بدأت المرحلة الآن» من شاشة التنبيه.</div>';$('actualSummary').textContent='لم يبدأ التسجيل.';return}
+  let lastKey=keys.at(-1),nowMin=(new Date()).getHours()*60+(new Date()).getMinutes();
+  for(let p=0;p<keys.length;p++){let i=keys[p],aMin=toMinutes(times[i]),nextIndex=keys[p+1],bMin=null,inprogress=false;if(nextIndex===i+1)bMin=toMinutes(times[nextIndex]);else if(nextIndex==null&&dateStr===today()&&i<events.length-1&&nowMin>=aMin){bMin=Math.min(end,nowMin);inprogress=true}if(bMin==null||bMin<=aMin)continue;let left=(aMin-start)/total*100,width=(bMin-aMin)/total*100,seg=document.createElement('div');seg.className='map-segment'+(inprogress?' inprogress':'');seg.style.position='absolute';seg.style.left=`${Math.max(0,left)}%`;seg.style.width=`${Math.max(.5,Math.min(100-left,width))}%`;seg.style.background=COLORS[i%COLORS.length];seg.innerHTML=`<span class="range-name">${events[i].range}${inprogress?' • جاري':''}</span>`;seg.title=`Actual: ${times[i]} — ${events[i].range}${nextIndex!=null?' → '+times[nextIndex]:''}`;map.append(seg)}
+  keys.forEach(i=>{let m=toMinutes(times[i]),pos=(m-start)/total*100,b=document.createElement('div');b.className='actual-boundary';b.style.left=`${Math.max(0,Math.min(100,pos))}%`;b.dataset.time=times[i];b.title=`${events[i].alert}: المخطط ${events[i].time} / الفعلي ${times[i]} / ${deltaLabel(actualDelta(events[i].time,times[i]))}`;map.append(b)});
+  if(dateStr===today()){let mins=(new Date()).getHours()*60+(new Date()).getMinutes()+(new Date()).getSeconds()/60;if(mins>=start&&mins<=end){let line=document.createElement('div');line.className='now-line';line.style.left=`${((mins-start)/total)*100}%`;map.append(line)}}
+  let deltas=keys.map(i=>actualDelta(events[i].time,times[i])),avg=Math.round(deltas.reduce((x,y)=>x+y,0)/deltas.length),last=lastKey;$('actualSummary').textContent=`${keys.length} حدود مسجلة • آخرها ${times[last]} (${deltaLabel(deltas.at(-1))}) • متوسط الانحراف ${avg>0?'+':''}${avg}د`;
+}
+let selectedStageIndex=-1;
+function selectStage(i){selectedStageIndex=i;renderStageList();renderDayMap();renderActualMap();let rows=[...document.querySelectorAll('.stage-row')];if(rows[i])rows[i].scrollIntoView({behavior:'smooth',block:'nearest'})}
+function renderStageList(){let events=safeParse(getPlanText(state.selectedDate)),box=$('stageList'),active=activeEventIndex(events,state.selectedDate),actual=getActual(state.selectedDate).times||{},targets=getRangeTargets(state.selectedDate),rangeActuals=getRangeActuals(state.selectedDate);box.innerHTML='';events.forEach((e,i)=>{let row=document.createElement('div');row.className='stage-row'+(i===active?' active':'')+(i===selectedStageIndex?' selected':'');let end=i<events.length-1?events[i+1].time:'—',at=actual[i],delta=at?actualDelta(e.time,at):null,chip=at?`<span class="actual-chip ${delta>0?'late':delta<0?'early':''}">Actual ${at} • ${deltaLabel(delta)}</span>`:'<span class="small">Actual —</span>',tg=Number(targets[i]||0),ac=Number(rangeActuals[i]||0),prod=i<events.length-1?`<span class="target-strip"><label class="target-chip">🎯 Target <input class="tiny-number target-input" type="number" min="0" step="1" value="${tg}"></label><label class="target-chip ${tg&&ac>=tg?'good':ac?'behind':''}">Actual frames <input class="tiny-number actual-frames-input" type="number" min="0" step="1" value="${ac}"></label>${tg?`<span class="target-chip ${ac>=tg&&ac?'good':ac?'behind':''}">${ac?`${ac-tg>=0?'+':''}${ac-tg} فريم`:'لم يُسجل'}</span>`:''}</span>`:'';row.innerHTML=`<strong>${e.time}</strong><span><span class="marker-title">🔔 ${e.alert}</span><span class="range-sub"><i class="stage-color" style="background:${COLORS[i%COLORS.length]}"></i> Range: ${e.range}${i<events.length-1?` → ${end}`:''}</span>${chip}${prod}</span><span class="sound-chip">${SOUND_NAMES[i%SOUND_NAMES.length]}</span><button class="actual-now-btn" title="سجل وقت البداية الحقيقي الآن">⏱ الآن</button><button class="sound-btn" title="تشغيل صوت هذا التنبيه">🔊</button><button class="lock-btn ${e.locked?'locked':''}" title="قفل/فتح هذا الحد">${e.locked?'🔒':'🔓'}</button>`;let [nowBtn,soundBtn,lockBtn]=row.querySelectorAll('button');nowBtn.onclick=(ev)=>{ev.stopPropagation();if(state.selectedDate!==today()&&!confirm('اليوم المحدد ليس اليوم الحالي. هل تريد تسجيل الوقت الحالي عليه؟'))return;recordActualBoundary(state.selectedDate,i)};soundBtn.onclick=(ev)=>{ev.stopPropagation();stopAlarmSound();playPattern(i,{long:false})};lockBtn.onclick=(ev)=>{ev.stopPropagation();let arr=safeParse(getPlanText(state.selectedDate));arr[i].locked=!arr[i].locked;saveEventsForSelected(arr,arr[i].locked?`تم قفل حد ${arr[i].time}.`:`تم فتح حد ${arr[i].time}.`)};let ti=row.querySelector('.target-input'),ai=row.querySelector('.actual-frames-input');if(ti)ti.onchange=(ev)=>{ev.stopPropagation();targets[i]=Math.max(0,Math.floor(Number(ti.value)||0));renderDayMap();renderStageList();renderRangeTargetSummary();persist()};if(ai)ai.onchange=(ev)=>{ev.stopPropagation();rangeActuals[i]=Math.max(0,Math.floor(Number(ai.value)||0));renderDayMap();renderStageList();renderRangeTargetSummary();persist()};row.onclick=(ev)=>{if(!['BUTTON','INPUT','LABEL'].includes(ev.target.tagName)){selectedStageIndex=i;renderStageList();renderDayMap();renderActualMap()}};box.append(row)});renderRangeTargetSummary()}
+function renderRangeTargetSummary(){let t=getRangeTargets(state.selectedDate),a=getRangeActuals(state.selectedDate),target=Object.values(t).reduce((x,y)=>x+(Number(y)||0),0),actual=Object.values(a).reduce((x,y)=>x+(Number(y)||0),0),el=$('rangeTargetSummary');if(!el)return;if(!target&&!actual){el.textContent='لم تُحدد أهداف للمراحل بعد. اكتب Target بجانب أي Range في Markers + Ranges.';return}el.innerHTML=`🎯 مجموع Targets: <b>${target}</b> فريم • Actual المراحل: <b>${actual}</b> فريم${target?` • الفرق: <b>${actual-target>=0?'+':''}${actual-target}</b>`:''}`}
+
+function weekStart(dateStr){let d=fromISO(dateStr),day=d.getDay(),offset=(day+6)%7;d.setDate(d.getDate()-offset);return isoDate(d)}
+function miniSegments(dateStr){let ev=safeParse(getPlanText(dateStr));if(ev.length<2)return '';let start=toMinutes(ev[0].time),end=toMinutes(ev.at(-1).time),total=Math.max(1,end-start);return ev.slice(0,-1).map((e,i)=>{let w=(toMinutes(ev[i+1].time)-toMinutes(e.time))/total*100;return `<span class="mini-seg" style="width:${w}%;background:${COLORS[i%COLORS.length]}"></span>`}).join('')}
+function renderWeek(){let start=weekStart(state.selectedDate),box=$('weekTabs');box.innerHTML='';for(let i=0;i<7;i++){let ds=addDays(start,i),d=fromISO(ds),el=document.createElement('div');el.className='week-day'+(ds===today()?' current':'')+(ds===state.selectedDate?' selected':'');el.innerHTML=`<strong>${AR_DAYS[d.getDay()]}</strong><span class="week-date">${d.toLocaleDateString('ar-EG',{day:'numeric',month:'short'})}</span><div class="mini-bar">${miniSegments(ds)}</div>`;el.onclick=()=>setSelectedDate(ds);box.append(el)}}
+function setSelectedDate(ds){state.selectedDate=ds;selectedStageIndex=-1;$('datePicker').value=ds;$('schedule').value=getPlanText(ds);let d=fromISO(ds);state.monthCursor=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;state.yearCursor=d.getFullYear();renderPlanner();persist()}
+function renderPlanner(){$('selectedDateLabel').textContent=formatDateAR(state.selectedDate);renderDayMap();renderActualMap();renderWeek();renderStageList();renderMonth();renderYear();renderFamilyTracks()}
+function renderTimer(){let st=getStats(today()),secs=Math.ceil(Math.max(0,state.remainMs)/1000);$('clock').textContent=`${String(Math.floor(secs/60)).padStart(2,'0')}:${String(secs%60).padStart(2,'0')}`;$('phase').textContent=state.phase==='work'?'وقت الشغل':state.phase==='break'?'وقت الراحة':(state.nextPhaseAfterTransition==='break'?'انتقال — استعد للراحة':'انتقال — استعد للشغل');$('start').textContent=state.running?'إيقاف مؤقت':'ابدأ / استكمل';let total=phaseDurationMs();$('bar').style.width=`${Math.max(0,Math.min(100,(1-state.remainMs/total)*100))}%`;$('focused').textContent=minsLabel(st.focusMs||0);let pct=(st.focusMs||0)/(state.goal*3600000)*100;$('goalPct').textContent=Math.floor(pct)+'%';$('goalBar').style.width=Math.min(100,pct)+'%';$('goalText').textContent=`من ${state.goal} ساعات`;let expected=Math.max(0,Math.round(1500*Math.min(1,(st.focusMs||0)/(state.goal*3600000))));$('expectedFrames').textContent=`${expected} فريم`;$('expectedFramesText').textContent=`المعدل المرجعي ${Math.round(1500/state.goal)} فريم لكل ساعة صافي`;$('frames').value=st.frames||0;$('framesInfo').textContent=`جاهز فعليًا: ${st.frames||0} / 1500 فريم (${((st.frames||0)/25).toFixed(1)} ثانية موشن). المتوقع حسب الوقت: ${expected} فريم.`;$('timerStatus').textContent=state.notice||'المؤقت جاهز.';document.querySelectorAll('[data-check]').forEach(x=>x.checked=!!(st.checks||{})[x.dataset.check])}
+function enterTransition(target){state.phase='transition';state.nextPhaseAfterTransition=target;state.remainMs=state.transitionSec*1000;state.notice=target==='break'?`انتهى الشغل. ${state.transitionSec} ثانية انتقال قبل الراحة.`:`انتهت الراحة. ${state.transitionSec} ثانية انتقال قبل الشغل.`;phaseSound(target)}
+function advancePhase(){if(state.phase==='work'){enterTransition('break');return}if(state.phase==='break'){enterTransition('work');return}state.phase=state.nextPhaseAfterTransition;state.remainMs=(state.phase==='work'?state.work:state.rest)*60000;state.notice=state.phase==='work'?'ابدأ الشغل.':'ابدأ الراحة.';phaseSound(state.phase)}
+let lastReminderScan=Date.now()-70000,lastRenderMinute='';
+function checkReminders(now){let from=lastReminderScan;if(now-from>10*60*1000)from=now-2*60*1000;let d=new Date(now),dateStr=isoDate(d),events=safeParse(getPlanText(dateStr));for(let i=0;i<events.length;i++){let e=events[i],[hh,mm]=e.time.split(':').map(Number),ed=new Date(d.getFullYear(),d.getMonth(),d.getDate(),hh,mm,0,0),ems=ed.getTime(),key=dateStr+'-'+e.time+'-'+i;if(ems>from&&ems<=now&&!state.lastReminders[key]){state.lastReminders[key]=true;triggerReminder(e.alert,e.time,i)}}lastReminderScan=now;for(let i=snoozes.length-1;i>=0;i--){if(snoozes[i].due<=now){let s=snoozes.splice(i,1)[0];triggerReminder(s.label,new Date(now).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}),s.index)}}}
+function triggerReminder(label,timeText,index){$('reminderStatus').textContent=`🔔 ${timeText}: ${label}`;if($('autoPause').checked&&state.running){state.running=false;state.lastAt=0;state.notice='توقف مؤقت الشغل تلقائيًا عند بداية المرحلة.'}stageAlarm(label,timeText,index);persist()}
+function tick(){let now=Date.now();if(state.running){let delta=Math.max(0,now-state.lastAt);state.lastAt=now;if(delta>10*60*1000){state.running=false;state.notice='توقف المؤقت بعد انقطاع طويل؛ اضغط ابدأ للاستكمال.'}else{let st=getStats(today()),loops=0;while(delta>0&&loops<8){let part=Math.min(delta,state.remainMs);if(state.phase==='work')st.focusMs=(st.focusMs||0)+part;state.remainMs-=part;delta-=part;if(state.remainMs<=0){advancePhase();loops++}}}}checkReminders(now);renderTimer();let minuteKey=new Date(now).toISOString().slice(0,16);if(minuteKey!==lastRenderMinute){lastRenderMinute=minuteKey;renderDayMap();renderActualMap();renderStageList();renderMonth();renderYear()}if(now-(tick.lastSave||0)>5000){persist();tick.lastSave=now}}
+function renderMonth(){let [y,m]=state.monthCursor.split('-').map(Number),first=new Date(y,m-1,1),last=new Date(y,m,0),startOffset=(first.getDay()+6)%7,box=$('monthGrid');$('monthTitle').textContent=first.toLocaleDateString('ar-EG',{month:'long',year:'numeric'});box.innerHTML='';let heads=['اث','ثل','أر','خم','جم','سب','أح'];$('monthWeekHead').innerHTML=heads.map(x=>`<div>${x}</div>`).join('');let totalCells=Math.ceil((startOffset+last.getDate())/7)*7;for(let c=0;c<totalCells;c++){let dayNum=c-startOffset+1,cell=document.createElement('div');if(dayNum<1||dayNum>last.getDate()){cell.className='day-cell other';box.append(cell);continue}let ds=isoDate(new Date(y,m-1,dayNum)),st=getStats(ds),pct=Math.min(100,(st.focusMs||0)/(state.goal*3600000)*100);cell.className='day-cell'+(ds===today()?' today':'')+(ds===state.selectedDate?' selected':'');cell.innerHTML=`<span class="num">${dayNum}</span><div class="micro">${miniSegments(ds)}</div><div class="focus-mini">${st.focusMs?minsLabel(st.focusMs):''}</div><div class="done" style="width:${pct}%"></div>`;cell.onclick=()=>setSelectedDate(ds);box.append(cell)}}
+function renderYear(){let y=state.yearCursor,box=$('yearGrid');$('yearTitle').textContent=y;box.innerHTML='';for(let m=0;m<12;m++){let wrap=document.createElement('div');wrap.className='year-month';wrap.innerHTML=`<h4>${new Date(y,m,1).toLocaleDateString('ar-EG',{month:'long'})}</h4><div class="year-mini"></div>`;let grid=wrap.querySelector('.year-mini'),first=new Date(y,m,1),offset=(first.getDay()+6)%7,days=new Date(y,m+1,0).getDate();for(let i=0;i<offset;i++){let x=document.createElement('div');x.className='year-dot out';grid.append(x)}for(let d=1;d<=days;d++){let ds=isoDate(new Date(y,m,d)),st=getStats(ds),pct=Math.min(100,(st.focusMs||0)/(state.goal*3600000)*100),dot=document.createElement('div');let cls='year-dot'+(state.plans[ds]?' hasplan':'')+(pct>=100?' p100':pct>=75?' p75':pct>=50?' p50':pct>=25?' p25':'')+(ds===today()?' today':'')+(ds===state.selectedDate?' selected':'');dot.className=cls;dot.title=`${formatDateAR(ds)}${st.focusMs?' — '+minsLabel(st.focusMs)+' شغل':''}`;dot.onclick=()=>setSelectedDate(ds);grid.append(dot)}box.append(wrap)}}
+function familyMiniSegments(track,dateStr){let txt=getFamilyPlan(track,dateStr);if(!txt)return '<span class="family-empty">لم تُضبط خطة</span>';let ev;try{ev=parseSchedule(txt)}catch{return '<span class="family-empty">الخطة تحتاج مراجعة</span>'}if(ev.length<2)return '<span class="family-empty">أضف مرحلتين على الأقل</span>';let start=toMinutes(ev[0].time),end=toMinutes(ev.at(-1).time),total=Math.max(1,end-start);return ev.slice(0,-1).map((e,i)=>{let w=(toMinutes(ev[i+1].time)-toMinutes(e.time))/total*100;return `<span class="mini-seg" title="${e.time} ${e.range}" style="width:${w}%;background:${COLORS[i%COLORS.length]}"></span>`}).join('')}
+function renderFamilyTracks(){let box=$('familyTracks');if(!box)return;box.innerHTML='';state.familyTracks.forEach((track,idx)=>{let row=document.createElement('div');row.className='family-track'+(track.id===state.selectedFamilyId?' selected':'');row.innerHTML=`<input class="family-name" value="${String(track.name||'').replace(/"/g,'&quot;')}" aria-label="اسم فرد الأسرة"><div class="family-mini">${familyMiniSegments(track,state.selectedDate)}</div><button class="ghost family-open">تحرير</button>`;let name=row.querySelector('.family-name');name.onchange=()=>{track.name=name.value.trim()||`فرد ${idx+1}`;renderFamilyTracks();persist()};row.querySelector('.family-open').onclick=()=>{state.selectedFamilyId=track.id;loadFamilyEditor();renderFamilyTracks();persist()};row.onclick=(ev)=>{if(ev.target.tagName!=='INPUT'&&ev.target.tagName!=='BUTTON'){state.selectedFamilyId=track.id;loadFamilyEditor();renderFamilyTracks();persist()}};box.append(row)});loadFamilyEditor()}
+function loadFamilyEditor(){let track=getFamilyTrack();if(!$('familySchedule'))return;$('familyEditorTitle').textContent=`تحرير مسار: ${track.name} — ${formatDateAR(state.selectedDate)}`;$('familySchedule').value=getFamilyPlan(track,state.selectedDate)}
+function exportBackup(){let payload={app:'Family Day Timer',version:8,exportedAt:new Date().toISOString(),state:{...state,running:false,lastAt:0}};let blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`family-day-timer-backup-${today()}.json`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);$('backupStatus').textContent='تم تصدير نسخة احتياطية كاملة.'}
+function importBackupFile(file){let r=new FileReader();r.onload=()=>{try{let data=JSON.parse(r.result),incoming=data.state||data;if(!incoming||typeof incoming!=='object')throw new Error('ملف غير صالح');if(!confirm('سيتم استبدال بيانات البرنامج الحالية بمحتوى الـBackup. متابعة؟'))return;Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,incoming,{running:false,lastAt:0});if(!state.rangeTargets)state.rangeTargets={};if(!state.rangeActuals)state.rangeActuals={};if(!Array.isArray(state.familyTracks))state.familyTracks=[{id:'me',name:'أنا',plans:{}},{id:'wife',name:'الزوجة',plans:{}},{id:'son1',name:'الابن 1',plans:{}},{id:'son2',name:'الابن 2',plans:{}},{id:'son3',name:'الابن 3',plans:{}}];state.familyTracks.forEach(t=>{if(!t.plans)t.plans={}});state.selectedDate=state.selectedDate||today();state.monthCursor=state.monthCursor||state.selectedDate.slice(0,7);state.yearCursor=state.yearCursor||Number(state.selectedDate.slice(0,4));state.selectedFamilyId=state.selectedFamilyId||state.familyTracks[0].id;loadSelectedPlan();renderPlanner();renderTimer();persist();$('backupStatus').textContent='تم استيراد الـBackup بنجاح.'}catch(err){$('backupStatus').textContent='تعذر استيراد الملف: '+err.message}};r.readAsText(file)}
+function loadSelectedPlan(){$('schedule').value=getPlanText(state.selectedDate);$('datePicker').value=state.selectedDate;loadFamilyEditor()}
+
+$('start').onclick=()=>{state.running=!state.running;state.lastAt=Date.now();state.notice=state.running?'الدورة شغالة تلقائيًا.':'المؤقت متوقف مؤقتًا.';ensureAudio();renderTimer();persist()};
+$('skip').onclick=()=>{state.running=false;advancePhase();state.notice+=' اضغط ابدأ لاستكمال الدورات.';renderTimer();persist()};
+$('reset').onclick=()=>{state.running=false;state.phase='work';state.nextPhaseAfterTransition='break';state.remainMs=state.work*60000;state.notice='تمت إعادة ضبط الدورة دون مسح إنجاز اليوم.';renderTimer();persist()};
+$('preset').onchange=()=>{if($('preset').value!=='custom'){let [a,b]=$('preset').value.split(',').map(Number);$('work').value=a;$('rest').value=b}};
+$('apply').onclick=()=>{let a=Number($('work').value),b=Number($('rest').value),t=Number($('transition').value);if(!Number.isInteger(a)||!Number.isInteger(b)||a<1||a>180||b<1||b>60||![40,60].includes(t)){state.notice='راجع مدة العمل والراحة وفاصل الانتقال.';renderTimer();return}state.work=a;state.rest=b;state.transitionSec=t;state.phase='work';state.nextPhaseAfterTransition='break';state.running=false;state.remainMs=a*60000;state.notice='تم حفظ المدة.';renderTimer();persist()};
+$('goal').onchange=()=>{let n=Number($('goal').value);if(n>=1&&n<=16)state.goal=n;else $('goal').value=state.goal;renderTimer();renderMonth();renderYear();persist()};
+$('frames').onchange=()=>{let st=getStats(today());st.frames=Math.max(0,Math.floor(Number($('frames').value)||0));renderTimer();persist()};
+$('sumRangeFrames').onclick=()=>{let total=Object.values(getRangeActuals(state.selectedDate)).reduce((x,y)=>x+(Number(y)||0),0);if(state.selectedDate!==today()&&!confirm('سيتم وضع مجموع Actual المراحل في إجمالي فريمات اليوم الحالي، وليس التاريخ المحدد. متابعة؟'))return;let st=getStats(today());st.frames=total;renderTimer();persist();$('reminderStatus').textContent=`تم تجميع ${total} فريم من Actual المراحل.`};
+$('sound').onchange=()=>{state.sound=$('sound').checked;persist()};$('volume').onchange=()=>{state.volume=Number($('volume').value);persist()};$('speak').onchange=()=>{state.speak=$('speak').checked;persist()};$('autoPause').onchange=()=>{state.autoPause=$('autoPause').checked;persist()};
+$('saveSchedule').onclick=()=>{try{let ev=parseSchedule($('schedule').value);setPlanText(state.selectedDate,scheduleToText(ev));$('reminderStatus').textContent=`تم حفظ خطة ${formatDateAR(state.selectedDate)}.`;selectedStageIndex=-1;renderPlanner();persist()}catch(err){$('reminderStatus').textContent=err.message}};
+$('copyWeek').onclick=()=>{try{let txt=scheduleToText(parseSchedule($('schedule').value)),start=weekStart(state.selectedDate);for(let i=0;i<7;i++)setPlanText(addDays(start,i),txt);$('reminderStatus').textContent='تم نسخ الخطة لكل أيام الأسبوع الحالي.';renderPlanner();persist()}catch(err){$('reminderStatus').textContent=err.message}};
+$('saveWeekdayTemplate').onclick=()=>{try{let txt=scheduleToText(parseSchedule($('schedule').value)),wd=fromISO(state.selectedDate).getDay();state.weekdayTemplates[wd]=txt;$('reminderStatus').textContent=`تم حفظها كقالب ليوم ${AR_DAYS[wd]}. الأيام غير المعدلة من نفس النوع ستستخدمه.`;renderPlanner();persist()}catch(err){$('reminderStatus').textContent=err.message}};
+$('datePicker').onchange=()=>{if($('datePicker').value)setSelectedDate($('datePicker').value)};$('prevDay').onclick=()=>setSelectedDate(addDays(state.selectedDate,-1));$('nextDay').onclick=()=>setSelectedDate(addDays(state.selectedDate,1));$('goToday').onclick=()=>setSelectedDate(today());
+$('prevMonth').onclick=()=>{let [y,m]=state.monthCursor.split('-').map(Number),d=new Date(y,m-2,1);state.monthCursor=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;renderMonth();persist()};$('nextMonth').onclick=()=>{let [y,m]=state.monthCursor.split('-').map(Number),d=new Date(y,m,1);state.monthCursor=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;renderMonth();persist()};$('prevYear').onclick=()=>{state.yearCursor--;renderYear();persist()};$('nextYear').onclick=()=>{state.yearCursor++;renderYear();persist()};
+$('startedNow').onclick=()=>{recordActualBoundary(today(),currentAlarmIndex,nowTime());stopAlarmSound();$('alarmOverlay').classList.remove('show')};$('dismissAlarm').onclick=()=>{stopAlarmSound();$('alarmOverlay').classList.remove('show')};$('snoozeAlarm').onclick=()=>{stopAlarmSound();$('alarmOverlay').classList.remove('show');snoozes.push({due:Date.now()+5*60000,label:currentAlarmLabel||'تنبيه مؤجل',index:currentAlarmIndex});$('reminderStatus').textContent='غفوة 5 دقائق.'};
+$('clearActual').onclick=()=>{if(!confirm('تمسح تسجيل Actual لليوم المحدد فقط؟ الخطة نفسها لن تتغير.'))return;clearActualDay(state.selectedDate);$('reminderStatus').textContent='تم مسح التنفيذ الفعلي لليوم المحدد.';};
+$('newDay').onclick=()=>{if(!confirm('تمسح ساعات الشغل والفريمات وعلامات المراجعة المسجلة لليوم الحالي؟'))return;state.stats[today()]={focusMs:0,frames:0,checks:{}};state.notice='تم تصفير إنجاز اليوم.';renderTimer();renderMonth();renderYear();persist()};
+$('copyMainToFamily').onclick=()=>{let track=getFamilyTrack();track.plans[state.selectedDate]=getPlanText(state.selectedDate);loadFamilyEditor();renderFamilyTracks();persist();$('reminderStatus').textContent=`تم نسخ خطة اليوم إلى مسار ${track.name}.`};
+$('saveFamilyTrack').onclick=()=>{let track=getFamilyTrack(),txt=$('familySchedule').value.trim();try{if(txt)txt=scheduleToText(parseSchedule(txt));track.plans[state.selectedDate]=txt;renderFamilyTracks();persist();$('reminderStatus').textContent=`تم حفظ مسار ${track.name}.`}catch(err){$('reminderStatus').textContent=err.message}};
+$('clearFamilyTrack').onclick=()=>{let track=getFamilyTrack();if(!confirm(`مسح خطة ${track.name} للتاريخ المحدد؟`))return;delete track.plans[state.selectedDate];loadFamilyEditor();renderFamilyTracks();persist()};
+$('exportBackup').onclick=exportBackup;$('importBackup').onchange=()=>{let f=$('importBackup').files?.[0];if(f)importBackupFile(f);$('importBackup').value=''};
+document.querySelectorAll('[data-check]').forEach(x=>x.onchange=()=>{let st=getStats(today());st.checks=st.checks||{};st.checks[x.dataset.check]=x.checked;persist()});
+$('work').value=state.work;$('rest').value=state.rest;$('transition').value=String(state.transitionSec||60);$('goal').value=state.goal;$('sound').checked=state.sound;$('volume').value=String(state.volume||.28);$('speak').checked=state.speak!==false;$('autoPause').checked=state.autoPause!==false;$('preset').value=state.work===20&&state.rest===5?'20,5':state.work===40&&state.rest===10?'40,10':state.work===30&&state.rest===5?'30,5':'custom';
+$('dragMode').value=state.dragMode||'resize';$('snapMin').value=String(state.snapMin||5);function updateSmartHint(){$('smartHint').textContent=$('dragMode').value==='smart'?'Smart Ripple يحافظ على أقرب موعد مقفول ويمتص الفرق في Range مرن قبله.':''}$('dragMode').onchange=()=>{state.dragMode=$('dragMode').value;updateSmartHint();persist()};updateSmartHint();$('snapMin').onchange=()=>{state.snapMin=Number($('snapMin').value);persist()};$('undoMap').onclick=()=>{if(!lastMapUndo)return;let cur={date:state.selectedDate,text:getPlanText(state.selectedDate)};setPlanText(lastMapUndo.date,lastMapUndo.text);state.selectedDate=lastMapUndo.date;$('schedule').value=getPlanText(state.selectedDate);lastMapUndo=cur;renderPlanner();persist();$('reminderStatus').textContent='تم التراجع عن آخر تحريك. يمكنك الضغط مرة أخرى للتبديل.';setUndoEnabled()};setUndoEnabled();
+$('todayPill').textContent=new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});loadSelectedPlan();renderPlanner();renderTimer();document.addEventListener('pointerdown',ensureAudio,{once:true});setInterval(tick,1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});window.addEventListener('beforeunload',persist);
+})();
+</script>
+
+<script>
+/* v9 PWA bootstrap */
+let deferredInstallPrompt=null;
+async function sendSystemNotification(label,timeText){
+  try{
+    if(!('Notification' in window)||Notification.permission!=='granted')return;
+    const opts={body:`${timeText} — ${label}`,icon:'icons/icon-192.png',badge:'icons/icon-192.png',tag:`day-map-${label}`,renotify:true,dir:'rtl',lang:'ar'};
+    if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+      const reg=await navigator.serviceWorker.ready; await reg.showNotification('خريطة اليوم',opts);
+    }else{new Notification('خريطة اليوم',opts)}
+  }catch(e){}
+}
+function updatePwaStatus(msg){const el=document.getElementById('pwaStatus');if(el)el.textContent=msg}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;const b=document.getElementById('installApp');if(b)b.hidden=false;updatePwaStatus('جاهز للتثبيت على هذا الجهاز. اضغط «تثبيت التطبيق».')});
+window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;const b=document.getElementById('installApp');if(b)b.hidden=true;updatePwaStatus('تم تثبيت خريطة اليوم كتطبيق على الجهاز ✅')});
+window.addEventListener('DOMContentLoaded',()=>{
+  const install=document.getElementById('installApp'), notif=document.getElementById('enableNotifications'), help=document.getElementById('pwaHelp');
+  if(install)install.onclick=async()=>{if(!deferredInstallPrompt){updatePwaStatus('زر التثبيت يظهر تلقائيًا عندما يفتح التطبيق من رابط HTTPS في متصفح يدعم PWA.');return}deferredInstallPrompt.prompt();try{await deferredInstallPrompt.userChoice}catch(e){}deferredInstallPrompt=null;install.hidden=true};
+  if(notif)notif.onclick=async()=>{if(!('Notification' in window)){updatePwaStatus('المتصفح الحالي لا يدعم إشعارات الويب.');return}const p=await Notification.requestPermission();updatePwaStatus(p==='granted'?'تم تفعيل إشعارات النظام ✅':'لم يتم منح إذن الإشعارات. يمكنك تغييره من إعدادات المتصفح.')};
+  if(help)help.onclick=()=>{const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);const local=location.protocol==='file:';alert(local?'أنت فاتح النسخة كملف محلي. ستعمل الصفحة، لكن التثبيت كتطبيق PWA يحتاج رابط HTTPS. بعد رفع المجلد على استضافة افتحه في Chrome/Edge واضغط Install، أو في iPhone افتحه في Safari ثم مشاركة ← إضافة إلى الشاشة الرئيسية.':(ios?'على iPhone: افتح الصفحة في Safari ← مشاركة ← إضافة إلى الشاشة الرئيسية.':'على Android: افتح الصفحة في Chrome/Edge ثم اضغط «تثبيت التطبيق» أو من قائمة المتصفح اختر Install app / Add to Home screen.'))};
+  if(location.protocol==='file:')updatePwaStatus('وضع ملف محلي: الصفحة تعمل على الموبايل، لكن التثبيت الحقيقي يحتاج رابط HTTPS.');
+  else if(window.matchMedia('(display-mode: standalone)').matches)updatePwaStatus('التطبيق يعمل الآن في وضع التثبيت Standalone ✅');
+  else updatePwaStatus('نسخة الويب جاهزة. عند توفر شروط PWA سيظهر زر التثبيت تلقائيًا.');
+});
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script>
+
+</body></html>
