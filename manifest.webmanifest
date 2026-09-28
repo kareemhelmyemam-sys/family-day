@@ -1,7 +1,7 @@
 {
   "name": "خريطة اليوم",
   "short_name": "خريطة اليوم",
-  "description": "Time mapping system لليوم والأسبوع والشهر والسنة مع مؤقت وتنبيهات وPlan vs Actual وزر طوارئ عائم متوافق مع الوضع الرأسي والأفقي.",
+  "description": "Time mapping system لليوم والأسبوع والشهر والسنة مع مؤقت وتنبيهات وPlan vs Actual وزر طوارئ عائم بمكان مستقل للرأسي والأفقي ولا يخرج خارج الشاشة.",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./index.html",
