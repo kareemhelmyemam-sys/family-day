@@ -1,7 +1,7 @@
 {
   "name": "خريطة اليوم",
   "short_name": "خريطة اليوم",
-  "description": "Time mapping system — v19 يضيف أوقات الصلاة كعلامات ثابتة LOCK مع تنبيه مستمر، بجانب خريطة اليوم والطوارئ.",
+  "description": "Time mapping system — v19.1 يضيف أوقات الصلاة كعلامات ثابتة LOCK مع تنبيه مستمر، بجانب خريطة اليوم والطوارئ.",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./index.html",

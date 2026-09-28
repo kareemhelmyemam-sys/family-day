@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>خريطة اليوم v19 — PWA</title>
+<title>خريطة اليوم v19.1 — PWA</title>
 <style>
 :root{
   color-scheme:dark;
@@ -168,13 +168,13 @@ main{width:100%;max-width:1240px;min-width:0;box-sizing:border-box;}
 </head>
 <body><main>
 <header>
-  <div><h1>خريطة اليوم 🌿</h1><p>نسخة v18: تثبيت مقياس الصفحة على الحجم الطبيعي في الرأسي والأفقي، ثم جعل زر الطوارئ والمنبهات تتحرك داخل الشاشة الحقيقية بدون أي إزاحة وهمية.</p></div>
+  <div><h1>خريطة اليوم 🌿</h1><p>نسخة v19.1: أوقات الصلاة الثابتة LOCK + إصلاح عرض رقم الإصدار مع الحفاظ على تحسينات الموبايل والطوارئ والمنبهات.</p></div>
   <span class="pill" id="todayPill"></span>
 </header>
 <div class="grid">
 <section class="card wide install-card" id="installCard">
   <div class="row between"><div><h2>نسخة الموبايل / PWA</h2><p>نفس خريطة اليوم، لكن بواجهة متجاوبة وقابلة للتثبيت عند تشغيلها من رابط HTTPS.</p></div><span class="install-badge">📱 Mobile Ready</span></div>
-  <div class="install-actions"><span class="install-badge">الإصدار v18</span><button id="installApp" hidden>تثبيت التطبيق</button><button class="secondary" id="enableNotifications">تفعيل إشعارات الموبايل</button><button class="secondary" id="checkUpdate">فحص تحديث</button><button class="ghost" id="pwaHelp">طريقة التثبيت</button></div>
+  <div class="install-actions"><span class="install-badge">الإصدار v19.1</span><button id="installApp" hidden>تثبيت التطبيق</button><button class="secondary" id="enableNotifications">تفعيل إشعارات الموبايل</button><button class="secondary" id="checkUpdate">فحص تحديث</button><button class="ghost" id="pwaHelp">طريقة التثبيت</button></div>
   <div class="pwa-status" id="pwaStatus">جارٍ فحص وضع التشغيل…</div>
 </section>
 
@@ -292,7 +292,7 @@ main{width:100%;max-width:1240px;min-width:0;box-sizing:border-box;}
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
-const APP_VERSION='v19';
+const APP_VERSION='v19.1';
 const KEY='family_day_timer_v8', OLD_KEY='family_day_timer_v7';
 const DEFAULT_TEXT=`06:30 | بداية اليوم | شغل + راحة | LOCK
 09:30 | تجهيز الفطار والمشي | تجهيز الفطار
