@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>خريطة اليوم v13 — PWA</title>
+<title>خريطة اليوم v15 — PWA</title>
 <style>
 :root{
   color-scheme:dark;
@@ -76,17 +76,57 @@ button{border:0;border-radius:11px;padding:9px 15px;cursor:pointer;background:va
   .emergency-fab{max-width:calc(100dvw - 12px);}
 }
 
+
+/* v15 portrait/landscape hardening */
+.emergency-fab{
+  right:auto!important; bottom:auto!important; margin:0!important;
+  transform:translate(-50%,-50%);
+  max-width:min(180px,calc(100vw - 20px));
+  white-space:normal;
+}
+#alarmOverlay,#emergencySummary{box-sizing:border-box!important;}
+#alarmOverlay .alarm-box,#emergencySummary .alarm-box{box-sizing:border-box!important;}
+@media (orientation:portrait) and (max-width:900px){
+  #alarmOverlay,#emergencySummary{
+    inset:0!important; width:auto!important; height:auto!important; max-width:none!important;
+    padding:8px!important; overflow:auto!important; display:none; align-items:flex-start!important; justify-content:center!important;
+  }
+  #alarmOverlay.show,#emergencySummary.show{display:flex!important;}
+  #alarmOverlay .alarm-box,#emergencySummary .alarm-box{
+    width:100%!important; max-width:100%!important; min-width:0!important;
+    max-height:calc(100vh - 16px)!important; max-height:calc(100dvh - 16px)!important;
+    margin:0!important; padding:14px 10px 16px!important; border-radius:15px!important;
+    overflow-y:auto!important; overflow-x:hidden!important;
+  }
+  #alarmOverlay .buttons{
+    display:grid!important; grid-template-columns:1fr!important; gap:8px!important;
+    position:sticky; bottom:-1px; z-index:3; padding:10px 0 max(6px,env(safe-area-inset-bottom));
+    margin-top:10px!important; background:linear-gradient(to top,#202b34 84%,#202b3400);
+  }
+  #alarmOverlay .buttons button{display:block!important; width:100%!important; min-width:0!important; max-width:100%!important;}
+  .ringing-bar{
+    left:8px!important; right:8px!important; bottom:max(8px,env(safe-area-inset-bottom))!important;
+    width:auto!important; max-width:none!important; transform:none!important;
+    box-sizing:border-box!important; display:none; flex-direction:column!important; align-items:stretch!important;
+    gap:8px!important; padding:10px!important; text-align:center!important;
+  }
+  .ringing-bar.show{display:flex!important;}
+  .ringing-bar>div{min-width:0!important; width:100%!important; overflow:hidden!important;}
+  .ringing-bar strong,.ringing-bar small{display:block!important; white-space:normal!important; overflow-wrap:anywhere!important;}
+  .ringing-bar button{width:100%!important; max-width:100%!important; min-width:0!important; flex:0 0 auto!important;}
+}
+
 </style>
 </head>
 <body><main>
 <header>
-  <div><h1>خريطة اليوم 🌿</h1><p>نسخة v14: إصلاح زر الطوارئ في الاتجاهين: مكان مستقل للرأسي والأفقي، فحص تلقائي يمنع اختفاءه خارج الشاشة، مع استمرار الجرس حتى إيقافه يدويًا.</p></div>
+  <div><h1>خريطة اليوم 🌿</h1><p>نسخة v15: سحب زر الطوارئ بإحداثيات مركزية ثابتة في الرأسي والأفقي، وإصلاح كامل لنافذة وبار إيقاف الجرس في الوضع الرأسي.</p></div>
   <span class="pill" id="todayPill"></span>
 </header>
 <div class="grid">
 <section class="card wide install-card" id="installCard">
   <div class="row between"><div><h2>نسخة الموبايل / PWA</h2><p>نفس خريطة اليوم، لكن بواجهة متجاوبة وقابلة للتثبيت عند تشغيلها من رابط HTTPS.</p></div><span class="install-badge">📱 Mobile Ready</span></div>
-  <div class="install-actions"><span class="install-badge">الإصدار v13</span><button id="installApp" hidden>تثبيت التطبيق</button><button class="secondary" id="enableNotifications">تفعيل إشعارات الموبايل</button><button class="secondary" id="checkUpdate">فحص تحديث</button><button class="ghost" id="pwaHelp">طريقة التثبيت</button></div>
+  <div class="install-actions"><span class="install-badge">الإصدار v15</span><button id="installApp" hidden>تثبيت التطبيق</button><button class="secondary" id="enableNotifications">تفعيل إشعارات الموبايل</button><button class="secondary" id="checkUpdate">فحص تحديث</button><button class="ghost" id="pwaHelp">طريقة التثبيت</button></div>
   <div class="pwa-status" id="pwaStatus">جارٍ فحص وضع التشغيل…</div>
 </section>
 
@@ -412,7 +452,7 @@ function renderYear(){let y=state.yearCursor,box=$('yearGrid');$('yearTitle').te
 function familyMiniSegments(track,dateStr){let txt=getFamilyPlan(track,dateStr);if(!txt)return '<span class="family-empty">لم تُضبط خطة</span>';let ev;try{ev=parseSchedule(txt)}catch{return '<span class="family-empty">الخطة تحتاج مراجعة</span>'}if(ev.length<2)return '<span class="family-empty">أضف مرحلتين على الأقل</span>';let start=toMinutes(ev[0].time),end=toMinutes(ev.at(-1).time),total=Math.max(1,end-start);return ev.slice(0,-1).map((e,i)=>{let w=(toMinutes(ev[i+1].time)-toMinutes(e.time))/total*100;return `<span class="mini-seg" title="${e.time} ${e.range}" style="width:${w}%;background:${COLORS[i%COLORS.length]}"></span>`}).join('')}
 function renderFamilyTracks(){let box=$('familyTracks');if(!box)return;box.innerHTML='';state.familyTracks.forEach((track,idx)=>{let row=document.createElement('div');row.className='family-track'+(track.id===state.selectedFamilyId?' selected':'');row.innerHTML=`<input class="family-name" value="${String(track.name||'').replace(/"/g,'&quot;')}" aria-label="اسم فرد الأسرة"><div class="family-mini">${familyMiniSegments(track,state.selectedDate)}</div><button class="ghost family-open">تحرير</button>`;let name=row.querySelector('.family-name');name.onchange=()=>{track.name=name.value.trim()||`فرد ${idx+1}`;renderFamilyTracks();persist()};row.querySelector('.family-open').onclick=()=>{state.selectedFamilyId=track.id;loadFamilyEditor();renderFamilyTracks();persist()};row.onclick=(ev)=>{if(ev.target.tagName!=='INPUT'&&ev.target.tagName!=='BUTTON'){state.selectedFamilyId=track.id;loadFamilyEditor();renderFamilyTracks();persist()}};box.append(row)});loadFamilyEditor()}
 function loadFamilyEditor(){let track=getFamilyTrack();if(!$('familySchedule'))return;$('familyEditorTitle').textContent=`تحرير مسار: ${track.name} — ${formatDateAR(state.selectedDate)}`;$('familySchedule').value=getFamilyPlan(track,state.selectedDate)}
-function exportBackup(){let payload={app:'Family Day Timer',version:12,exportedAt:new Date().toISOString(),state:{...state,running:false,lastAt:0}};let blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`family-day-timer-backup-${today()}.json`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);$('backupStatus').textContent='تم تصدير نسخة احتياطية كاملة.'}
+function exportBackup(){let payload={app:'Family Day Timer',version:15,exportedAt:new Date().toISOString(),state:{...state,running:false,lastAt:0}};let blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`family-day-timer-backup-${today()}.json`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);$('backupStatus').textContent='تم تصدير نسخة احتياطية كاملة.'}
 function importBackupFile(file){let r=new FileReader();r.onload=()=>{try{let data=JSON.parse(r.result),incoming=data.state||data;if(!incoming||typeof incoming!=='object')throw new Error('ملف غير صالح');if(!confirm('سيتم استبدال بيانات البرنامج الحالية بمحتوى الـBackup. متابعة؟'))return;Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,incoming,{running:false,lastAt:0});if(!state.rangeTargets)state.rangeTargets={};if(!state.rangeActuals)state.rangeActuals={};if(!state.interruptions)state.interruptions={};if(!Array.isArray(state.familyTracks))state.familyTracks=[{id:'me',name:'أنا',plans:{}},{id:'wife',name:'الزوجة',plans:{}},{id:'son1',name:'الابن 1',plans:{}},{id:'son2',name:'الابن 2',plans:{}},{id:'son3',name:'الابن 3',plans:{}}];state.familyTracks.forEach(t=>{if(!t.plans)t.plans={}});state.selectedDate=state.selectedDate||today();state.monthCursor=state.monthCursor||state.selectedDate.slice(0,7);state.yearCursor=state.yearCursor||Number(state.selectedDate.slice(0,4));state.selectedFamilyId=state.selectedFamilyId||state.familyTracks[0].id;loadSelectedPlan();renderPlanner();renderTimer();persist();$('backupStatus').textContent='تم استيراد الـBackup بنجاح.'}catch(err){$('backupStatus').textContent='تعذر استيراد الملف: '+err.message}};r.readAsText(file)}
 function loadSelectedPlan(){$('schedule').value=getPlanText(state.selectedDate);$('datePicker').value=state.selectedDate;loadFamilyEditor()}
 
@@ -440,103 +480,98 @@ $('exportBackup').onclick=exportBackup;$('importBackup').onchange=()=>{let f=$('
 document.querySelectorAll('[data-check]').forEach(x=>x.onchange=()=>{let st=getStats(today());st.checks=st.checks||{};st.checks[x.dataset.check]=x.checked;persist()});
 $('work').value=state.work;$('rest').value=state.rest;$('transition').value=String(state.transitionSec||60);$('goal').value=state.goal;$('sound').checked=state.sound;$('volume').value=String(state.volume||.28);$('speak').checked=state.speak!==false;$('autoPause').checked=state.autoPause!==false;$('preset').value=state.work===20&&state.rest===5?'20,5':state.work===40&&state.rest===10?'40,10':state.work===30&&state.rest===5?'30,5':'custom';
 $('dragMode').value=state.dragMode||'resize';$('snapMin').value=String(state.snapMin||5);function updateSmartHint(){$('smartHint').textContent=$('dragMode').value==='smart'?'Smart Ripple يحافظ على أقرب موعد مقفول ويمتص الفرق في Range مرن قبله.':''}$('dragMode').onchange=()=>{state.dragMode=$('dragMode').value;updateSmartHint();persist()};updateSmartHint();$('snapMin').onchange=()=>{state.snapMin=Number($('snapMin').value);persist()};$('undoMap').onclick=()=>{if(!lastMapUndo)return;let cur={date:state.selectedDate,text:getPlanText(state.selectedDate)};setPlanText(lastMapUndo.date,lastMapUndo.text);state.selectedDate=lastMapUndo.date;$('schedule').value=getPlanText(state.selectedDate);lastMapUndo=cur;renderPlanner();persist();$('reminderStatus').textContent='تم التراجع عن آخر تحريك. يمكنك الضغط مرة أخرى للتبديل.';setUndoEnabled()};setUndoEnabled();
-// Floating emergency button v14: separate portrait/landscape positions + hard visibility recovery.
+// Floating emergency button v15: center-based drag; follows the finger in both orientations.
 const emergencyFab=$('emergencyFab');let efDrag=null;
 function fabOrientation(){return window.matchMedia('(orientation: landscape)').matches?'landscape':'portrait'}
 function fabViewport(){
-  const vv=window.visualViewport;
-  const w=Math.max(1,Math.round(vv?.width||window.innerWidth||document.documentElement.clientWidth||360));
-  const h=Math.max(1,Math.round(vv?.height||window.innerHeight||document.documentElement.clientHeight||640));
-  return {w,h};
+  // Fixed-position coordinates are matched most reliably by innerWidth/innerHeight in standalone Android PWAs.
+  return {w:Math.max(1,window.innerWidth||document.documentElement.clientWidth||360),h:Math.max(1,window.innerHeight||document.documentElement.clientHeight||640)};
 }
-function fabLimits(){
-  const v=fabViewport(),pad=10,w=Math.min(emergencyFab.offsetWidth||150,Math.max(80,v.w-pad*2)),h=Math.min(emergencyFab.offsetHeight||58,Math.max(44,v.h-pad*2));
-  return {pad,w,h,maxL:Math.max(pad,v.w-w-pad),maxT:Math.max(pad,v.h-h-pad)};
+function fabMetrics(){
+  const v=fabViewport(),r=emergencyFab.getBoundingClientRect();
+  const w=Math.min(Math.max(80,r.width||150),Math.max(80,v.w-16));
+  const h=Math.min(Math.max(44,r.height||58),Math.max(44,v.h-16));
+  const pad=8,halfW=w/2,halfH=h/2;
+  return {v,w,h,pad,minX:pad+halfW,maxX:Math.max(pad+halfW,v.w-pad-halfW),minY:pad+halfH,maxY:Math.max(pad+halfH,v.h-pad-halfH)};
 }
-function clampFab(left,top){
-  const lim=fabLimits();
-  left=Number.isFinite(Number(left))?Number(left):lim.maxL;
-  top=Number.isFinite(Number(top))?Number(top):lim.maxT;
-  return {left:Math.max(lim.pad,Math.min(lim.maxL,left)),top:Math.max(lim.pad,Math.min(lim.maxT,top))};
+function clampFabCenter(x,y){
+  const m=fabMetrics();
+  x=Number.isFinite(Number(x))?Number(x):m.maxX;
+  y=Number.isFinite(Number(y))?Number(y):m.maxY;
+  return {x:Math.max(m.minX,Math.min(m.maxX,x)),y:Math.max(m.minY,Math.min(m.maxY,y)),m};
 }
-function getSavedFabPos(){
-  const ori=fabOrientation();
-  state.emergencyFabPositions=state.emergencyFabPositions||{};
-  return state.emergencyFabPositions[ori]||null;
+function getSavedFabCenter(){
+  const ori=fabOrientation(); state.emergencyFabCenters=state.emergencyFabCenters||{}; return state.emergencyFabCenters[ori]||null;
 }
-function saveFabPos(left,top){
-  const ori=fabOrientation(),lim=fabLimits(),p=clampFab(left,top);
-  const rx=lim.maxL>lim.pad?(p.left-lim.pad)/(lim.maxL-lim.pad):1;
-  const ry=lim.maxT>lim.pad?(p.top-lim.pad)/(lim.maxT-lim.pad):1;
-  state.emergencyFabPositions=state.emergencyFabPositions||{};
-  state.emergencyFabPositions[ori]={x:Math.max(0,Math.min(1,rx)),y:Math.max(0,Math.min(1,ry))};
-  // Keep legacy field harmlessly for older backups.
-  state.emergencyFabPos={x:Math.max(0,Math.min(1,rx)),y:Math.max(0,Math.min(1,ry))};
+function saveFabCenter(x,y){
+  const ori=fabOrientation(),c=clampFabCenter(x,y),m=c.m;
+  const rx=m.maxX>m.minX?(c.x-m.minX)/(m.maxX-m.minX):1;
+  const ry=m.maxY>m.minY?(c.y-m.minY)/(m.maxY-m.minY):1;
+  state.emergencyFabCenters=state.emergencyFabCenters||{};
+  state.emergencyFabCenters[ori]={x:Math.max(0,Math.min(1,rx)),y:Math.max(0,Math.min(1,ry))};
   persist();
 }
-function defaultFabPos(){const lim=fabLimits();return {left:lim.maxL,top:lim.maxT}}
 function applyFabPos(forceDefault=false){
   if(!emergencyFab)return;
-  emergencyFab.style.right='auto';emergencyFab.style.bottom='auto';emergencyFab.style.margin='0';
-  const lim=fabLimits(),pos=forceDefault?null:getSavedFabPos();
-  let left,top;
-  if(pos&&Number.isFinite(Number(pos.x))&&Number.isFinite(Number(pos.y))){
-    left=lim.pad+Math.max(0,Math.min(1,Number(pos.x)))*(lim.maxL-lim.pad);
-    top=lim.pad+Math.max(0,Math.min(1,Number(pos.y)))*(lim.maxT-lim.pad);
-  }else{
-    ({left,top}=defaultFabPos());
+  emergencyFab.style.right='auto'; emergencyFab.style.bottom='auto'; emergencyFab.style.margin='0';
+  emergencyFab.style.transform='translate(-50%,-50%)';
+  const m=fabMetrics(),pos=forceDefault?null:getSavedFabCenter();
+  let x=m.maxX,y=m.maxY;
+  if(pos&&Number.isFinite(+pos.x)&&Number.isFinite(+pos.y)){
+    x=m.minX+Math.max(0,Math.min(1,+pos.x))*(m.maxX-m.minX);
+    y=m.minY+Math.max(0,Math.min(1,+pos.y))*(m.maxY-m.minY);
   }
-  const p=clampFab(left,top);
-  emergencyFab.style.left=p.left+'px';emergencyFab.style.top=p.top+'px';
-  emergencyFab.style.display='flex';emergencyFab.style.visibility='visible';emergencyFab.style.opacity='1';
+  const c=clampFabCenter(x,y);
+  emergencyFab.style.left=c.x+'px'; emergencyFab.style.top=c.y+'px';
+  emergencyFab.style.display='flex'; emergencyFab.style.visibility='visible'; emergencyFab.style.opacity='1';
 }
 function ensureFabVisible(){
   if(!emergencyFab)return;
   const v=fabViewport(),r=emergencyFab.getBoundingClientRect();
-  const bad=!Number.isFinite(r.left)||!Number.isFinite(r.top)||r.width<20||r.height<20||r.right<4||r.bottom<4||r.left>v.w-4||r.top>v.h-4||r.right>v.w+4||r.bottom>v.h+4;
-  if(bad){applyFabPos(true);const rr=emergencyFab.getBoundingClientRect();saveFabPos(rr.left,rr.top)}
+  const bad=!Number.isFinite(r.left)||!Number.isFinite(r.top)||r.width<20||r.height<20||r.left<0||r.top<0||r.right>v.w||r.bottom>v.h;
+  if(bad)applyFabPos(true);
 }
 function beginFabDrag(ev){
   if(ev.pointerType==='mouse'&&ev.button!==0)return;
-  ensureAudio();ensureFabVisible();
-  const r=emergencyFab.getBoundingClientRect(),p=clampFab(r.left,r.top);
-  emergencyFab.style.right='auto';emergencyFab.style.bottom='auto';emergencyFab.style.left=p.left+'px';emergencyFab.style.top=p.top+'px';
-  efDrag={id:ev.pointerId,grabX:ev.clientX-r.left,grabY:ev.clientY-r.top,startX:ev.clientX,startY:ev.clientY,moved:false};
+  ensureAudio(); ensureFabVisible();
+  const r=emergencyFab.getBoundingClientRect();
+  efDrag={id:ev.pointerId,startX:ev.clientX,startY:ev.clientY,moved:false,
+    offsetX:ev.clientX-(r.left+r.width/2),offsetY:ev.clientY-(r.top+r.height/2)};
+  emergencyFab.classList.add('dragging'); document.documentElement.style.overscrollBehavior='none';
   try{emergencyFab.setPointerCapture(ev.pointerId)}catch{}
-  emergencyFab.classList.add('dragging');document.documentElement.style.overscrollBehavior='none';
-  ev.preventDefault();ev.stopPropagation();
+  ev.preventDefault(); ev.stopPropagation();
 }
 function moveFabDrag(ev){
   if(!efDrag||efDrag.id!==ev.pointerId)return;
-  if(Math.hypot(ev.clientX-efDrag.startX,ev.clientY-efDrag.startY)>5)efDrag.moved=true;
+  if(Math.hypot(ev.clientX-efDrag.startX,ev.clientY-efDrag.startY)>4)efDrag.moved=true;
   if(efDrag.moved){
-    const p=clampFab(ev.clientX-efDrag.grabX,ev.clientY-efDrag.grabY);
-    emergencyFab.style.left=p.left+'px';emergencyFab.style.top=p.top+'px';
+    // Preserve the exact grab point, but position is always center-based and clamped to the real screen.
+    const c=clampFabCenter(ev.clientX-efDrag.offsetX,ev.clientY-efDrag.offsetY);
+    emergencyFab.style.left=c.x+'px'; emergencyFab.style.top=c.y+'px';
   }
-  ev.preventDefault();ev.stopPropagation();
+  ev.preventDefault(); ev.stopPropagation();
 }
 function endEmergencyFabPointer(ev){
   if(!efDrag||efDrag.id!==ev.pointerId)return;
-  const moved=efDrag.moved;efDrag=null;emergencyFab.classList.remove('dragging');document.documentElement.style.overscrollBehavior='';
+  const moved=efDrag.moved; efDrag=null; emergencyFab.classList.remove('dragging'); document.documentElement.style.overscrollBehavior='';
   try{emergencyFab.releasePointerCapture(ev.pointerId)}catch{}
-  ensureFabVisible();const r=emergencyFab.getBoundingClientRect(),p=clampFab(r.left,r.top);
-  emergencyFab.style.left=p.left+'px';emergencyFab.style.top=p.top+'px';saveFabPos(p.left,p.top);
+  const r=emergencyFab.getBoundingClientRect(),c=clampFabCenter(r.left+r.width/2,r.top+r.height/2);
+  emergencyFab.style.left=c.x+'px'; emergencyFab.style.top=c.y+'px'; saveFabCenter(c.x,c.y);
   if(!moved){state.activeEmergency?finishEmergency():startEmergency()}
-  ev.preventDefault();ev.stopPropagation();
+  ev.preventDefault(); ev.stopPropagation();
 }
 emergencyFab.addEventListener('pointerdown',beginFabDrag,{passive:false});
-emergencyFab.addEventListener('pointermove',moveFabDrag,{passive:false});
-emergencyFab.addEventListener('pointerup',endEmergencyFabPointer,{passive:false});
-emergencyFab.addEventListener('pointercancel',ev=>{if(efDrag&&efDrag.id===ev.pointerId){efDrag=null;emergencyFab.classList.remove('dragging');document.documentElement.style.overscrollBehavior='';setTimeout(()=>{applyFabPos();ensureFabVisible()},40)}});
+// Listen globally so Android cannot lose the drag when the finger outruns the button.
+window.addEventListener('pointermove',moveFabDrag,{passive:false});
+window.addEventListener('pointerup',endEmergencyFabPointer,{passive:false});
+window.addEventListener('pointercancel',ev=>{if(efDrag&&efDrag.id===ev.pointerId){efDrag=null;emergencyFab.classList.remove('dragging');document.documentElement.style.overscrollBehavior='';setTimeout(()=>{applyFabPos();ensureFabVisible()},40)}});
 function reflowFab(){
-  // Each orientation owns its own saved position. If this orientation has no saved position, use a guaranteed safe corner.
   requestAnimationFrame(()=>{applyFabPos();ensureFabVisible()});
-  [80,250,700,1400].forEach(ms=>setTimeout(()=>{applyFabPos();ensureFabVisible()},ms));
+  [80,250,600,1200].forEach(ms=>setTimeout(()=>{applyFabPos();ensureFabVisible()},ms));
 }
 window.addEventListener('resize',reflowFab);
 window.addEventListener('orientationchange',reflowFab);
 window.visualViewport?.addEventListener('resize',reflowFab);
-window.visualViewport?.addEventListener('scroll',()=>{if(!efDrag)ensureFabVisible()});
 $('stopPersistentRing').onclick=()=>{stopAlarmSound();$('reminderStatus').textContent='تم إيقاف الجرس يدويًا.'};
 $('emergencyUseBuffer').onclick=applyEmergencyBuffer;$('emergencyShiftPlan').onclick=shiftPlanAfterEmergency;$('emergencyKeepPlan').onclick=()=>{$('emergencySummary').classList.remove('show');let x=state._lastEmergencySummary,mins=x?Math.max(1,Math.round(x.durationMs/60000)):0,msg=`تم تسجيل الطارئ (${mins}د) في Actual بدون تغيير PLAN.`;$('reminderStatus').textContent=msg;renderPlanner();resumeAfterEmergencyChoice(msg)};
 $('todayPill').textContent=new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});loadSelectedPlan();renderPlanner();renderTimer();applyFabPos();setTimeout(applyFabPos,120);updateEmergencyUI();document.addEventListener('pointerdown',ensureAudio,{once:true});setInterval(tick,1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});window.addEventListener('beforeunload',persist);

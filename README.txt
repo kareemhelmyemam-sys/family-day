@@ -1,17 +1,4 @@
-خريطة اليوم v13 — PWA
-
-نسخة Mobile/PWA من Time Mapping System.
-
-v12:
-- زر طوارئ عائم يظل ظاهرًا أثناء التمرير ويمكن سحبه لأي مكان على الشاشة.
-- أثناء الطارئ يتوقف مؤقت الشغل/الراحة وتنبيهات المراحل، ويستمر عداد الطارئ وحده.
-- عند إنهاء الطارئ يظهر ملخص بالمدة، المواعيد التي مرت، والوقت المرن/الاحتياطي المتاح.
-- خيارات بعد الطارئ: امتصاصه من وقت مرن، تحريك الحدود التالية حتى أول LOCK، أو تسجيل Actual فقط.
-- الطوارئ تظهر كطبقة حمراء في ACTUAL Map.
-- جرس انتقال الشغل/الراحة أصبح أوضح وأقوى مع اهتزاز على الموبايل إن كان مدعومًا.
-- تحديث PWA Network-first مع Cache v12.
-
-للنشر: ارفع محتويات المجلد إلى GitHub Pages أو أي HTTPS static hosting، بحيث index.html في الجذر.
-
-
-v12: زر الطوارئ يتحرك بسلاسة بدون قفز للحافة، شاشة ملخص الطارئ قابلة للتمرير على الموبايل، وجميع أجراس المراحل/الانتقالات تستمر حتى الإيقاف اليدوي.
+Family Day PWA v15
+- Emergency FAB center-based drag in portrait and landscape.
+- Portrait alarm and persistent ringing controls constrained to visible viewport.
+- Ringing continues until manual stop.
