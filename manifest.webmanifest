@@ -1,7 +1,7 @@
 {
   "name": "خريطة اليوم",
   "short_name": "خريطة اليوم",
-  "description": "Time mapping system مع تصحيح صريح للـRTL/PWA viewport في الرأسي، وزر طوارئ ومنبهات لا تخرج عن الشاشة.",
+  "description": "Time mapping system — v18 يفتح بالحجم الطبيعي نفسه في الرأسي والأفقي، مع زر طوارئ ومنبهات ثابتة داخل الشاشة.",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./index.html",

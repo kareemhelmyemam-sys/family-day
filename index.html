@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#0d1319">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>خريطة اليوم v17 — PWA</title>
+<title>خريطة اليوم v18 — PWA</title>
 <style>
 :root{
   color-scheme:dark;
@@ -131,17 +131,36 @@ button{border:0;border-radius:11px;padding:9px 15px;cursor:pointer;background:va
   .alarm-stop-fab{left:10px!important;right:10px!important;top:max(8px,env(safe-area-inset-top))!important;transform:none!important;width:auto!important;max-width:none!important;}
 }
 
+
+
+/* v18: normalize mobile scale first; fixed UI must follow the real CSS viewport with no RTL shift hacks. */
+html,body{width:100%;max-width:100%;min-width:0;margin:0;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+body{min-height:100vh;min-height:100dvh;}
+main{width:100%;max-width:1240px;min-width:0;box-sizing:border-box;}
+.grid,.card,.row,.stack,.map-shell,.calendar-head,.family-grid{min-width:0;max-width:100%;box-sizing:border-box;}
+.map-shell{width:100%;}
+/* Keep wide timeline content scrollable INSIDE its shell, never widen the app viewport. */
+@media(max-width:700px){
+  .map-shell{overflow-x:auto!important;overflow-y:hidden!important;max-width:100%!important;contain:inline-size;}
+  .alarm-overlay,.emergency-summary-overlay{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;max-width:100%!important;transform:none!important;margin:0!important;box-sizing:border-box!important;}
+  .alarm-box,.emergency-sheet{width:calc(100% - 12px)!important;max-width:calc(100% - 12px)!important;min-width:0!important;box-sizing:border-box!important;margin:0 auto!important;}
+  .alarm-stop-fab{position:fixed!important;left:8px!important;right:8px!important;top:max(8px,env(safe-area-inset-top))!important;width:auto!important;max-width:none!important;transform:none!important;box-sizing:border-box!important;}
+  .ringing-bar{position:fixed!important;left:8px!important;right:8px!important;width:auto!important;max-width:none!important;transform:none!important;box-sizing:border-box!important;}
+}
+.emergency-fab-host{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;z-index:12000!important;pointer-events:none!important;overflow:hidden!important;box-sizing:border-box!important;contain:none!important;transform:none!important;direction:ltr!important;}
+.emergency-fab-host .emergency-fab{position:absolute!important;pointer-events:auto!important;right:auto!important;bottom:auto!important;transform:none!important;margin:0!important;max-width:calc(100% - 16px)!important;}
+
 </style>
 </head>
 <body><main>
 <header>
-  <div><h1>خريطة اليوم 🌿</h1><p>نسخة v17: تصحيح مساحة الشاشة الفعلية في الوضع الرأسي (RTL/PWA)، بحيث زر الطوارئ والمنبهات يلتزموا بحدود شاشة الموبايل نفسها.</p></div>
+  <div><h1>خريطة اليوم 🌿</h1><p>نسخة v18: تثبيت مقياس الصفحة على الحجم الطبيعي في الرأسي والأفقي، ثم جعل زر الطوارئ والمنبهات تتحرك داخل الشاشة الحقيقية بدون أي إزاحة وهمية.</p></div>
   <span class="pill" id="todayPill"></span>
 </header>
 <div class="grid">
 <section class="card wide install-card" id="installCard">
   <div class="row between"><div><h2>نسخة الموبايل / PWA</h2><p>نفس خريطة اليوم، لكن بواجهة متجاوبة وقابلة للتثبيت عند تشغيلها من رابط HTTPS.</p></div><span class="install-badge">📱 Mobile Ready</span></div>
-  <div class="install-actions"><span class="install-badge">الإصدار v17</span><button id="installApp" hidden>تثبيت التطبيق</button><button class="secondary" id="enableNotifications">تفعيل إشعارات الموبايل</button><button class="secondary" id="checkUpdate">فحص تحديث</button><button class="ghost" id="pwaHelp">طريقة التثبيت</button></div>
+  <div class="install-actions"><span class="install-badge">الإصدار v18</span><button id="installApp" hidden>تثبيت التطبيق</button><button class="secondary" id="enableNotifications">تفعيل إشعارات الموبايل</button><button class="secondary" id="checkUpdate">فحص تحديث</button><button class="ghost" id="pwaHelp">طريقة التثبيت</button></div>
   <div class="pwa-status" id="pwaStatus">جارٍ فحص وضع التشغيل…</div>
 </section>
 
@@ -245,7 +264,7 @@ button{border:0;border-radius:11px;padding:9px 15px;cursor:pointer;background:va
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
-const APP_VERSION='v17';
+const APP_VERSION='v18';
 const KEY='family_day_timer_v8', OLD_KEY='family_day_timer_v7';
 const DEFAULT_TEXT=`06:30 | بداية اليوم | شغل + راحة | LOCK
 09:30 | تجهيز الفطار والمشي | تجهيز الفطار
@@ -496,36 +515,38 @@ $('exportBackup').onclick=exportBackup;$('importBackup').onchange=()=>{let f=$('
 document.querySelectorAll('[data-check]').forEach(x=>x.onchange=()=>{let st=getStats(today());st.checks=st.checks||{};st.checks[x.dataset.check]=x.checked;persist()});
 $('work').value=state.work;$('rest').value=state.rest;$('transition').value=String(state.transitionSec||60);$('goal').value=state.goal;$('sound').checked=state.sound;$('volume').value=String(state.volume||.28);$('speak').checked=state.speak!==false;$('autoPause').checked=state.autoPause!==false;$('preset').value=state.work===20&&state.rest===5?'20,5':state.work===40&&state.rest===10?'40,10':state.work===30&&state.rest===5?'30,5':'custom';
 $('dragMode').value=state.dragMode||'resize';$('snapMin').value=String(state.snapMin||5);function updateSmartHint(){$('smartHint').textContent=$('dragMode').value==='smart'?'Smart Ripple يحافظ على أقرب موعد مقفول ويمتص الفرق في Range مرن قبله.':''}$('dragMode').onchange=()=>{state.dragMode=$('dragMode').value;updateSmartHint();persist()};updateSmartHint();$('snapMin').onchange=()=>{state.snapMin=Number($('snapMin').value);persist()};$('undoMap').onclick=()=>{if(!lastMapUndo)return;let cur={date:state.selectedDate,text:getPlanText(state.selectedDate)};setPlanText(lastMapUndo.date,lastMapUndo.text);state.selectedDate=lastMapUndo.date;$('schedule').value=getPlanText(state.selectedDate);lastMapUndo=cur;renderPlanner();persist();$('reminderStatus').textContent='تم التراجع عن آخر تحريك. يمكنك الضغط مرة أخرى للتبديل.';setUndoEnabled()};setUndoEnabled();
-// Floating emergency button v17: dedicated fixed viewport host + native touch drag.
+// Floating emergency button v18: normalize scale first, then use the real CSS viewport only.
 const emergencyFab=$('emergencyFab');let efDrag=null;
+const viewportMeta=document.querySelector('meta[name="viewport"]');
+const VIEWPORT_CONTENT='width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content';
+function normalizeViewportScale(){
+  if(viewportMeta && viewportMeta.getAttribute('content')!==VIEWPORT_CONTENT) viewportMeta.setAttribute('content',VIEWPORT_CONTENT);
+  document.documentElement.style.width='100%';document.body.style.width='100%';
+  document.documentElement.style.maxWidth='100%';document.body.style.maxWidth='100%';
+}
+normalizeViewportScale();
 const emergencyFabHost=document.createElement('div');
 emergencyFabHost.className='emergency-fab-host';emergencyFabHost.id='emergencyFabHost';
 document.body.appendChild(emergencyFabHost);emergencyFabHost.appendChild(emergencyFab);
-// Android standalone + RTL may expose a layout viewport wider than the visible viewport in portrait.
-// Force every critical fixed UI surface to the *visible* documentElement viewport.
-function visibleViewportMetrics(){
-  const cw=Math.max(1,document.documentElement.clientWidth||window.visualViewport?.width||window.innerWidth||360);
-  const ch=Math.max(1,document.documentElement.clientHeight||window.visualViewport?.height||window.innerHeight||640);
-  const iw=Math.max(cw,window.innerWidth||cw);
-  const ih=Math.max(ch,window.innerHeight||ch);
-  // In RTL portrait Chrome/PWA the fixed-position origin can be shifted left by (innerWidth-clientWidth).
-  const shiftX=Math.max(0,iw-cw);
-  const shiftY=Math.max(0,ih-ch)>ch*.6?0:Math.max(0,ih-ch); // normally zero; avoid false double-height offsets.
-  return {w:cw,h:ch,shiftX,shiftY};
+function realViewport(){
+  // Because zoom is locked to 1, innerWidth/innerHeight are the app's actual CSS viewport.
+  const w=Math.max(1,Math.round(window.innerWidth||document.documentElement.clientWidth||360));
+  const h=Math.max(1,Math.round(window.innerHeight||document.documentElement.clientHeight||640));
+  return {w,h};
 }
-function setImp(el,prop,val){if(el)el.style.setProperty(prop,val,'important')}
-function syncVisibleViewport(){
-  const v=visibleViewportMetrics();
-  setImp(emergencyFabHost,'left',v.shiftX+'px');setImp(emergencyFabHost,'right','auto');setImp(emergencyFabHost,'top',v.shiftY+'px');setImp(emergencyFabHost,'bottom','auto');setImp(emergencyFabHost,'width',v.w+'px');setImp(emergencyFabHost,'height',v.h+'px');
-  for(const id of ['alarmOverlay','emergencySummary']){const el=$(id);setImp(el,'left',v.shiftX+'px');setImp(el,'right','auto');setImp(el,'top',v.shiftY+'px');setImp(el,'bottom','auto');setImp(el,'width',v.w+'px');setImp(el,'height',v.h+'px')}
-  const rb=$('ringingBar');setImp(rb,'left',(v.shiftX+8)+'px');setImp(rb,'right','auto');setImp(rb,'width',Math.max(120,v.w-16)+'px');setImp(rb,'transform','none');setImp(rb,'top',(v.shiftY+76)+'px');setImp(rb,'bottom','auto');
-  const sf=$('alarmStopFab');setImp(sf,'left',(v.shiftX+10)+'px');setImp(sf,'right','auto');setImp(sf,'width',Math.max(120,v.w-20)+'px');setImp(sf,'max-width',Math.max(120,v.w-20)+'px');setImp(sf,'transform','none');
-  const es=$('emergencyStrip'); if(es){setImp(es,'left',(v.shiftX+v.w/2)+'px');setImp(es,'right','auto');}
+function syncFixedSurfaces(){
+  normalizeViewportScale();
+  const v=realViewport();
+  emergencyFabHost.style.left='0px';emergencyFabHost.style.top='0px';emergencyFabHost.style.width=v.w+'px';emergencyFabHost.style.height=v.h+'px';
+  // Never inject left offsets into overlays. They are fixed to the viewport itself.
+  for(const id of ['alarmOverlay','emergencySummary']){const el=$(id);if(el){el.style.left='0px';el.style.top='0px';el.style.right='0px';el.style.bottom='0px';el.style.width='100%';el.style.height='100dvh';}}
+  const rb=$('ringingBar');if(rb){rb.style.left='8px';rb.style.right='8px';rb.style.width='auto';rb.style.transform='none';}
+  const sf=$('alarmStopFab');if(sf){sf.style.left='8px';sf.style.right='8px';sf.style.width='auto';sf.style.maxWidth='none';sf.style.transform='none';}
   return v;
 }
-syncVisibleViewport();
-function fabOrientation(){return matchMedia('(orientation: landscape)').matches?'landscape':'portrait'}
-function fabHostRect(){syncVisibleViewport();let r=emergencyFabHost.getBoundingClientRect();return {left:r.left,top:r.top,width:Math.max(1,r.width),height:Math.max(1,r.height)}}
+syncFixedSurfaces();
+function fabOrientation(){return (window.innerWidth>window.innerHeight)?'landscape':'portrait'}
+function fabHostRect(){syncFixedSurfaces();return {left:0,top:0,width:realViewport().w,height:realViewport().h}}
 function fabSize(){let r=emergencyFab.getBoundingClientRect();return {w:Math.max(80,r.width||150),h:Math.max(44,r.height||58)}}
 function clampFabXY(x,y){
   const hr=fabHostRect(),s=fabSize(),pad=8;
@@ -545,34 +566,38 @@ function applyFabPos(forceDefault=false){
   const c=clampFabXY(x,y);emergencyFab.style.left=c.x+'px';emergencyFab.style.top=c.y+'px';emergencyFab.style.display='flex';emergencyFab.style.visibility='visible';emergencyFab.style.opacity='1';
 }
 function ensureFabVisible(){
-  if(!emergencyFab)return;const hr=fabHostRect(),r=emergencyFab.getBoundingClientRect();
-  const bad=!Number.isFinite(r.left)||!Number.isFinite(r.top)||r.width<20||r.height<20||r.left<hr.left-1||r.top<hr.top-1||r.right>hr.left+hr.width+1||r.bottom>hr.top+hr.height+1;
+  if(!emergencyFab)return;const v=realViewport(),r=emergencyFab.getBoundingClientRect();
+  const bad=!Number.isFinite(r.left)||!Number.isFinite(r.top)||r.width<20||r.height<20||r.left<0||r.top<0||r.right>v.w+1||r.bottom>v.h+1;
   if(bad)applyFabPos(true);
 }
 function startFabDrag(clientX,clientY,id,type){
-  ensureAudio();ensureFabVisible();const hr=fabHostRect(),r=emergencyFab.getBoundingClientRect();
-  efDrag={id,type,startX:clientX,startY:clientY,moved:false,offsetX:clientX-r.left,offsetY:clientY-r.top,hostLeft:hr.left,hostTop:hr.top};
+  ensureAudio();ensureFabVisible();const r=emergencyFab.getBoundingClientRect();
+  efDrag={id,type,startX:clientX,startY:clientY,moved:false,offsetX:clientX-r.left,offsetY:clientY-r.top};
   emergencyFab.classList.add('dragging');document.documentElement.style.overscrollBehavior='none';
 }
 function moveFabAt(clientX,clientY){
   if(!efDrag)return;if(Math.hypot(clientX-efDrag.startX,clientY-efDrag.startY)>4)efDrag.moved=true;
-  if(!efDrag.moved)return;const hr=fabHostRect();const c=clampFabXY(clientX-hr.left-efDrag.offsetX,clientY-hr.top-efDrag.offsetY);
+  if(!efDrag.moved)return;const c=clampFabXY(clientX-efDrag.offsetX,clientY-efDrag.offsetY);
   emergencyFab.style.left=c.x+'px';emergencyFab.style.top=c.y+'px';
 }
 function finishFabDrag(){
   if(!efDrag)return false;const moved=efDrag.moved;efDrag=null;emergencyFab.classList.remove('dragging');document.documentElement.style.overscrollBehavior='';
-  const hr=fabHostRect(),r=emergencyFab.getBoundingClientRect(),c=clampFabXY(r.left-hr.left,r.top-hr.top);emergencyFab.style.left=c.x+'px';emergencyFab.style.top=c.y+'px';saveFabXY(c.x,c.y);return moved;
+  const r=emergencyFab.getBoundingClientRect(),c=clampFabXY(r.left,r.top);emergencyFab.style.left=c.x+'px';emergencyFab.style.top=c.y+'px';saveFabXY(c.x,c.y);return moved;
 }
-// Touch Events are intentionally used on phones: they avoid Android pointer-capture coordinate drift after rotation.
 emergencyFab.addEventListener('touchstart',ev=>{if(ev.touches.length!==1)return;const t=ev.touches[0];startFabDrag(t.clientX,t.clientY,t.identifier,'touch');ev.preventDefault();ev.stopPropagation()},{passive:false});
 window.addEventListener('touchmove',ev=>{if(!efDrag||efDrag.type!=='touch')return;let t=[...ev.touches].find(x=>x.identifier===efDrag.id);if(!t)return;moveFabAt(t.clientX,t.clientY);ev.preventDefault()},{passive:false});
 window.addEventListener('touchend',ev=>{if(!efDrag||efDrag.type!=='touch')return;let still=[...ev.touches].some(x=>x.identifier===efDrag.id);if(still)return;const moved=finishFabDrag();if(!moved){state.activeEmergency?finishEmergency():startEmergency()}ev.preventDefault()},{passive:false});
-// Mouse / pen fallback for laptop and stylus.
 emergencyFab.addEventListener('pointerdown',ev=>{if(ev.pointerType==='touch')return;if(ev.button!==0)return;startFabDrag(ev.clientX,ev.clientY,ev.pointerId,'pointer');try{emergencyFab.setPointerCapture(ev.pointerId)}catch{}ev.preventDefault()},{passive:false});
 window.addEventListener('pointermove',ev=>{if(!efDrag||efDrag.type!=='pointer'||efDrag.id!==ev.pointerId)return;moveFabAt(ev.clientX,ev.clientY);ev.preventDefault()},{passive:false});
 window.addEventListener('pointerup',ev=>{if(!efDrag||efDrag.type!=='pointer'||efDrag.id!==ev.pointerId)return;const moved=finishFabDrag();if(!moved){state.activeEmergency?finishEmergency():startEmergency()}ev.preventDefault()},{passive:false});
-function reflowFab(){syncVisibleViewport();requestAnimationFrame(()=>{syncVisibleViewport();applyFabPos();ensureFabVisible()});[80,250,700].forEach(ms=>setTimeout(()=>{syncVisibleViewport();applyFabPos();ensureFabVisible()},ms))}
-window.addEventListener('resize',reflowFab);window.addEventListener('orientationchange',reflowFab);window.visualViewport?.addEventListener('resize',reflowFab);window.visualViewport?.addEventListener('scroll',reflowFab);
+function reflowFab(){
+  normalizeViewportScale();
+  requestAnimationFrame(()=>{syncFixedSurfaces();applyFabPos();ensureFabVisible()});
+  [120,350,800].forEach(ms=>setTimeout(()=>{normalizeViewportScale();syncFixedSurfaces();applyFabPos();ensureFabVisible()},ms));
+}
+window.addEventListener('resize',reflowFab);window.addEventListener('orientationchange',reflowFab);window.visualViewport?.addEventListener('resize',reflowFab);
+// Some Android PWAs launch portrait with a stale zoom/layout viewport. Reassert scale after first paints.
+[0,80,250,700,1400].forEach(ms=>setTimeout(()=>{normalizeViewportScale();syncFixedSurfaces();if(ms===0)applyFabPos();else ensureFabVisible()},ms));
 const stopAnyAlarm=()=>{stopAlarmSound();$('alarmOverlay')?.classList.remove('show');$('reminderStatus').textContent='تم إيقاف الجرس يدويًا.'};$('stopPersistentRing').onclick=stopAnyAlarm;$('alarmStopFab').onclick=stopAnyAlarm;
 $('emergencyUseBuffer').onclick=applyEmergencyBuffer;$('emergencyShiftPlan').onclick=shiftPlanAfterEmergency;$('emergencyKeepPlan').onclick=()=>{$('emergencySummary').classList.remove('show');let x=state._lastEmergencySummary,mins=x?Math.max(1,Math.round(x.durationMs/60000)):0,msg=`تم تسجيل الطارئ (${mins}د) في Actual بدون تغيير PLAN.`;$('reminderStatus').textContent=msg;renderPlanner();resumeAfterEmergencyChoice(msg)};
 $('todayPill').textContent=new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});loadSelectedPlan();renderPlanner();renderTimer();applyFabPos();setTimeout(applyFabPos,120);updateEmergencyUI();document.addEventListener('pointerdown',ensureAudio,{once:true});setInterval(tick,1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});window.addEventListener('beforeunload',persist);
