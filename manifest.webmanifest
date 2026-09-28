@@ -1,7 +1,7 @@
 {
   "name": "خريطة اليوم",
   "short_name": "خريطة اليوم",
-  "description": "Time mapping system لليوم والأسبوع والشهر والسنة مع زر طوارئ عائم ثابت وسلس في الرأسي والأفقي وتنبيهات مستمرة حتى الإيقاف اليدوي.",
+  "description": "Time mapping system مع تصحيح صريح للـRTL/PWA viewport في الرأسي، وزر طوارئ ومنبهات لا تخرج عن الشاشة.",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./index.html",
