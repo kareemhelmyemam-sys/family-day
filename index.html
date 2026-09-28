@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>خريطة اليوم v12 — PWA</title>
+<title>خريطة اليوم v13 — PWA</title>
 <style>
 :root{
   color-scheme:dark;
@@ -19,7 +19,7 @@
   --accent:#6de1b0;--accent2:#7fb8ff;--border:#38505a;--danger:#ff8a8a;--warn:#ffd37a;
   --shadow:0 12px 35px #0004;
 }
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{font-family:Tahoma,"Segoe UI",sans-serif;background:linear-gradient(135deg,#0e2026,#0d1319 62%);color:var(--ink);margin:0;line-height:1.55}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{font-family:Tahoma,"Segoe UI",sans-serif;background:linear-gradient(135deg,#0e2026,#0d1319 62%);color:var(--ink);margin:0;line-height:1.55;overflow-x:hidden;overscroll-behavior-x:none}
 main{max-width:1240px;margin:auto;padding:20px 14px 60px}header{display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;margin-bottom:16px}h1{font-size:clamp(27px,5vw,42px);margin:0}h2{font-size:21px;margin:0 0 10px}h3{font-size:16px;margin:0 0 8px;color:var(--muted)}p{color:var(--muted);margin:6px 0 12px}.pill{border:1px solid #456b63;padding:3px 10px;border-radius:40px;color:var(--accent)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.wide{grid-column:1/-1}.card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
 .row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.row>*{flex-shrink:0}.between{justify-content:space-between}.stack{display:grid;gap:10px}
@@ -46,10 +46,10 @@ button{border:0;border-radius:11px;padding:9px 15px;cursor:pointer;background:va
 .backup-box{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.backup-box input[type=file]{max-width:250px;color:var(--muted)}
 .family-grid{display:grid;gap:8px}.family-track{display:grid;grid-template-columns:150px 1fr auto;gap:8px;align-items:center;background:var(--panel2);border:1px solid var(--border);border-radius:11px;padding:8px}.family-track.selected{outline:2px solid var(--accent2)}.family-track input{width:100%;min-width:0}.family-mini{direction:ltr;display:flex;height:22px;border-radius:7px;overflow:hidden;background:#10191f;border:1px solid #30444e}.family-mini .mini-seg{height:100%;position:relative}.family-mini .mini-seg b{display:none}.family-empty{color:var(--muted);font-size:11px;text-align:center;width:100%;direction:rtl}.family-editor{margin-top:12px;border-top:1px solid var(--border);padding-top:12px}.family-editor textarea{min-height:150px}.family-actions{display:flex;gap:7px;flex-wrap:wrap}.family-label{font-size:11px;color:var(--muted)}
 .check{display:flex;gap:9px;padding:7px 0;align-items:center;color:var(--ink)}.check input{width:19px;height:19px;accent-color:var(--accent)}
-.alarm-overlay{position:fixed;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:9999;padding:18px}.alarm-overlay.show{display:flex}.alarm-box{width:min(590px,100%);background:#202b34;border:2px solid var(--accent);border-radius:24px;padding:28px;text-align:center;box-shadow:0 24px 90px #0009}.alarm-box .alarm-time{font-size:clamp(44px,10vw,82px);font-weight:800;line-height:1.1}.alarm-box h2{font-size:clamp(26px,6vw,40px);margin:12px 0 12px}.alarm-box .sound-name{color:var(--warn);margin-bottom:18px}.alarm-pulse{animation:alarmPulse .55s ease-in-out infinite alternate}@keyframes alarmPulse{from{box-shadow:0 0 0 0 #6de1b055,0 24px 90px #0009}to{box-shadow:0 0 0 16px #6de1b000,0 24px 90px #0009}}
+.alarm-overlay{position:fixed;inset:0;width:100vw;height:100dvh;max-width:100vw;background:#000d;display:none;align-items:center;justify-content:center;z-index:9999;padding:18px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}.alarm-overlay.show{display:flex}.alarm-box{width:min(590px,calc(100vw - 36px));max-width:calc(100vw - 36px);max-height:calc(100dvh - 36px);min-width:0;overflow-y:auto;overflow-x:hidden;background:#202b34;border:2px solid var(--accent);border-radius:24px;padding:28px;text-align:center;box-shadow:0 24px 90px #0009;margin:auto}.alarm-box>*{max-width:100%}.alarm-box .alarm-time{font-size:clamp(44px,10vw,82px);font-weight:800;line-height:1.1;overflow-wrap:anywhere}.alarm-box h2{font-size:clamp(26px,6vw,40px);margin:12px 0 12px;overflow-wrap:anywhere}.alarm-box p{overflow-wrap:anywhere}.alarm-box .sound-name{color:var(--warn);margin-bottom:18px;overflow-wrap:anywhere}.alarm-box .buttons{width:100%}.alarm-box .buttons button{min-width:0;white-space:normal}.alarm-pulse{animation:alarmPulse .55s ease-in-out infinite alternate}@keyframes alarmPulse{from{box-shadow:0 0 0 0 #6de1b055,0 24px 90px #0009}to{box-shadow:0 0 0 16px #6de1b000,0 24px 90px #0009}}
 @media(max-width:900px){.year-grid{grid-template-columns:repeat(2,1fr)}.week-tabs{grid-template-columns:repeat(4,1fr)}}
 /* v12 Emergency / persistent ringing layer */
-.emergency-fab{position:fixed;right:18px;bottom:22px;z-index:12000;min-width:150px;min-height:58px;padding:9px 16px;border-radius:18px;background:#b33d48;color:#fff;border:2px solid #ff9aa3;box-shadow:0 12px 34px #0008,0 0 0 4px #ff6b7740;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab;transition:background .2s,box-shadow .2s;will-change:left,top}.emergency-fab:active{cursor:grabbing}.emergency-fab .emergency-main{font-size:17px;font-weight:800;line-height:1.15}.emergency-fab .emergency-time{font-size:12px;font-variant-numeric:tabular-nums;opacity:.92;min-height:18px}.emergency-fab.active{background:#d02d3e;border-color:#fff1f2;animation:emergencyPulse .72s ease-in-out infinite alternate}.emergency-fab.dragging{transition:none;animation:none;box-shadow:0 12px 34px #0008,0 0 0 7px #ff4d5f55}@keyframes emergencyPulse{from{box-shadow:0 12px 34px #0008,0 0 0 4px #ff4d5f33}to{box-shadow:0 12px 34px #0008,0 0 0 8px #ff4d5f66}}
+.emergency-fab{position:fixed;right:18px;bottom:22px;z-index:12000;min-width:150px;min-height:58px;padding:9px 16px;border-radius:18px;background:#b33d48;color:#fff;border:2px solid #ff9aa3;box-shadow:0 12px 34px #0008,0 0 0 4px #ff6b7740;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab;transition:background .2s,box-shadow .2s;will-change:left,top;max-width:calc(100vw - 12px);contain:layout paint}.emergency-fab:active{cursor:grabbing}.emergency-fab .emergency-main{font-size:17px;font-weight:800;line-height:1.15}.emergency-fab .emergency-time{font-size:12px;font-variant-numeric:tabular-nums;opacity:.92;min-height:18px}.emergency-fab.active{background:#d02d3e;border-color:#fff1f2;animation:emergencyPulse .72s ease-in-out infinite alternate}.emergency-fab.dragging{transition:none;animation:none;box-shadow:0 12px 34px #0008,0 0 0 7px #ff4d5f55}@keyframes emergencyPulse{from{box-shadow:0 12px 34px #0008,0 0 0 4px #ff4d5f33}to{box-shadow:0 12px 34px #0008,0 0 0 8px #ff4d5f66}}
 .emergency-strip{display:none;position:fixed;left:50%;top:max(8px,env(safe-area-inset-top));transform:translateX(-50%);z-index:11990;background:#551c24e8;border:1px solid #ff929d;color:#fff;padding:6px 12px;border-radius:999px;font-size:12px;box-shadow:0 8px 28px #0008;white-space:nowrap}.emergency-strip.show{display:block}.emergency-map-block{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(45deg,#9d2e3b,#9d2e3b 8px,#c24250 8px,#c24250 16px);border:2px solid #ffd6da;z-index:15;opacity:.94;overflow:hidden}.emergency-map-block span{font-size:10px;font-weight:800;color:#fff;text-shadow:0 1px 2px #000;direction:rtl;display:flex;height:100%;align-items:center;justify-content:center;white-space:nowrap}.emergency-summary-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:13px 0;text-align:right}.emergency-summary-item{background:#151f26;border:1px solid #425661;border-radius:11px;padding:9px}.emergency-summary-item strong{display:block;color:#ffd6da;font-size:18px}.emergency-actions{display:grid;gap:8px;margin-top:12px}.emergency-actions button{width:100%}.emergency-actions button:disabled{opacity:.38}.emergency-note{background:#3a2528;border:1px solid #74424a;color:#ffe7e9;padding:9px;border-radius:10px;text-align:right;font-size:12px}.emergency-summary-overlay{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}.emergency-sheet{max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}.emergency-sheet .emergency-actions{position:sticky;bottom:-1px;background:linear-gradient(to top,#202b34 82%,#202b3400);padding:14px 0 max(8px,env(safe-area-inset-bottom));z-index:2}.ringing-bar{display:none;position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:13000;width:min(560px,calc(100vw - 20px));background:#5a3517f2;border:2px solid #ffd37a;color:#fff;border-radius:18px;padding:10px 12px;box-shadow:0 14px 44px #000a;align-items:center;justify-content:space-between;gap:10px}.ringing-bar.show{display:flex}.ringing-bar strong{font-size:15px}.ringing-bar small{display:block;color:#ffe7b5;margin-top:2px}.ringing-bar button{flex:0 0 auto;background:#fff;color:#40280f;font-weight:800}.transition-flash{animation:transitionFlash .22s linear 4}@keyframes transitionFlash{0%,100%{box-shadow:none}50%{box-shadow:inset 0 0 0 5px #ffd37a99}}
 @media(max-width:700px){.family-track{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wide{grid-column:auto}.stats{grid-template-columns:1fr 1fr}.week-tabs{grid-template-columns:repeat(2,1fr)}.year-grid{grid-template-columns:1fr}.stage-row{grid-template-columns:66px minmax(150px,1fr) auto auto auto}.stage-row .sound-chip{display:none}.day-map{height:102px}}
 
@@ -61,17 +61,32 @@ button{border:0;border-radius:11px;padding:9px 15px;cursor:pointer;background:va
 @media(max-width:700px){.emergency-summary-overlay{align-items:flex-start;padding:6px;padding-top:max(6px,env(safe-area-inset-top));padding-bottom:max(6px,env(safe-area-inset-bottom))}.emergency-sheet{width:100%;max-height:calc(100dvh - 12px);border-radius:16px;padding:16px 12px}.emergency-sheet .alarm-time{font-size:44px}.emergency-sheet h2{font-size:26px}.ringing-bar{bottom:max(8px,env(safe-area-inset-bottom));padding:8px 10px}.ringing-bar strong{font-size:14px}}
 @media(max-width:430px){.emergency-fab{min-width:132px;min-height:54px;padding:8px 12px}.emergency-fab .emergency-main{font-size:15px}.emergency-summary-list{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.compare-grid{grid-template-columns:1fr}.week-tabs{grid-template-columns:1fr 1fr}.pill{font-size:11px}.stage-row{grid-template-columns:58px minmax(130px,1fr) auto}.stage-row .actual-now-btn{grid-column:1/-1}.stage-row .sound-btn{display:none}}
 
+
+/* v13 portrait hardening: fixed overlays stay inside the visible phone viewport. */
+@media (orientation:portrait) and (max-width:800px){
+  .alarm-overlay{width:100dvw;height:100dvh;max-width:100dvw;align-items:flex-start;justify-content:center;padding:max(6px,env(safe-area-inset-top)) 6px max(6px,env(safe-area-inset-bottom));}
+  .alarm-box{width:calc(100dvw - 12px);max-width:calc(100dvw - 12px);max-height:calc(100dvh - max(12px,env(safe-area-inset-top) + env(safe-area-inset-bottom)));padding:16px 12px 18px;border-radius:16px;margin:0 auto;}
+  #alarmOverlay .buttons{display:grid;grid-template-columns:1fr;gap:8px;margin:12px 0 0;}
+  #alarmOverlay .buttons button{width:100%;max-width:100%;}
+  #alarmOverlay .alarm-time{font-size:clamp(42px,16vw,68px)}
+  #alarmOverlay h2{font-size:clamp(24px,8vw,34px)}
+  .emergency-summary-overlay{width:100dvw;height:100dvh;max-width:100dvw;}
+  .emergency-sheet{width:calc(100dvw - 12px)!important;max-width:calc(100dvw - 12px)!important;max-height:calc(100dvh - 12px)!important;margin:0 auto!important;}
+  .ringing-bar{left:6px!important;right:6px!important;transform:none!important;width:auto!important;max-width:none!important;bottom:max(8px,env(safe-area-inset-bottom));}
+  .emergency-fab{max-width:calc(100dvw - 12px);}
+}
+
 </style>
 </head>
 <body><main>
 <header>
-  <div><h1>خريطة اليوم 🌿</h1><p>نسخة v12: زر طوارئ عائم أكثر ثباتًا، ملخص طوارئ قابل للتمرير، وأي جرس يستمر حتى توقفه بنفسك.</p></div>
+  <div><h1>خريطة اليوم 🌿</h1><p>نسخة v13: إصلاح جذري لسحب زر الطوارئ في الوضع الرأسي، ونوافذ تنبيه متوافقة مع شاشة الموبايل رأسيًا وأفقيًا، مع استمرار الجرس حتى إيقافه يدويًا.</p></div>
   <span class="pill" id="todayPill"></span>
 </header>
 <div class="grid">
 <section class="card wide install-card" id="installCard">
   <div class="row between"><div><h2>نسخة الموبايل / PWA</h2><p>نفس خريطة اليوم، لكن بواجهة متجاوبة وقابلة للتثبيت عند تشغيلها من رابط HTTPS.</p></div><span class="install-badge">📱 Mobile Ready</span></div>
-  <div class="install-actions"><span class="install-badge">الإصدار v12</span><button id="installApp" hidden>تثبيت التطبيق</button><button class="secondary" id="enableNotifications">تفعيل إشعارات الموبايل</button><button class="secondary" id="checkUpdate">فحص تحديث</button><button class="ghost" id="pwaHelp">طريقة التثبيت</button></div>
+  <div class="install-actions"><span class="install-badge">الإصدار v13</span><button id="installApp" hidden>تثبيت التطبيق</button><button class="secondary" id="enableNotifications">تفعيل إشعارات الموبايل</button><button class="secondary" id="checkUpdate">فحص تحديث</button><button class="ghost" id="pwaHelp">طريقة التثبيت</button></div>
   <div class="pwa-status" id="pwaStatus">جارٍ فحص وضع التشغيل…</div>
 </section>
 
@@ -425,18 +440,76 @@ $('exportBackup').onclick=exportBackup;$('importBackup').onchange=()=>{let f=$('
 document.querySelectorAll('[data-check]').forEach(x=>x.onchange=()=>{let st=getStats(today());st.checks=st.checks||{};st.checks[x.dataset.check]=x.checked;persist()});
 $('work').value=state.work;$('rest').value=state.rest;$('transition').value=String(state.transitionSec||60);$('goal').value=state.goal;$('sound').checked=state.sound;$('volume').value=String(state.volume||.28);$('speak').checked=state.speak!==false;$('autoPause').checked=state.autoPause!==false;$('preset').value=state.work===20&&state.rest===5?'20,5':state.work===40&&state.rest===10?'40,10':state.work===30&&state.rest===5?'30,5':'custom';
 $('dragMode').value=state.dragMode||'resize';$('snapMin').value=String(state.snapMin||5);function updateSmartHint(){$('smartHint').textContent=$('dragMode').value==='smart'?'Smart Ripple يحافظ على أقرب موعد مقفول ويمتص الفرق في Range مرن قبله.':''}$('dragMode').onchange=()=>{state.dragMode=$('dragMode').value;updateSmartHint();persist()};updateSmartHint();$('snapMin').onchange=()=>{state.snapMin=Number($('snapMin').value);persist()};$('undoMap').onclick=()=>{if(!lastMapUndo)return;let cur={date:state.selectedDate,text:getPlanText(state.selectedDate)};setPlanText(lastMapUndo.date,lastMapUndo.text);state.selectedDate=lastMapUndo.date;$('schedule').value=getPlanText(state.selectedDate);lastMapUndo=cur;renderPlanner();persist();$('reminderStatus').textContent='تم التراجع عن آخر تحريك. يمكنك الضغط مرة أخرى للتبديل.';setUndoEnabled()};setUndoEnabled();
-// Floating emergency button: tap toggles emergency; drag follows the finger without edge snapping.
+// Floating emergency button v13: finger-anchored drag, no edge snap, portrait/landscape-safe.
 const emergencyFab=$('emergencyFab');let efDrag=null;
-function viewportSize(){let vv=window.visualViewport;return {w:vv?.width||innerWidth,h:vv?.height||innerHeight}}
-function clampFab(left,top){let r=emergencyFab.getBoundingClientRect(),v=viewportSize(),pad=6,maxL=Math.max(pad,v.w-r.width-pad),maxT=Math.max(pad,v.h-r.height-pad);return {left:Math.max(pad,Math.min(maxL,left)),top:Math.max(pad,Math.min(maxT,top))}}
-function applyFabPos(){let pos=state.emergencyFabPos;if(!pos)return;let p=clampFab(Number(pos.left)||6,Number(pos.top)||6);emergencyFab.style.right='auto';emergencyFab.style.bottom='auto';emergencyFab.style.left=p.left+'px';emergencyFab.style.top=p.top+'px'}
-emergencyFab.addEventListener('pointerdown',ev=>{if(ev.button!==undefined&&ev.button!==0&&ev.pointerType==='mouse')return;ensureAudio();let r=emergencyFab.getBoundingClientRect();emergencyFab.style.right='auto';emergencyFab.style.bottom='auto';emergencyFab.style.left=r.left+'px';emergencyFab.style.top=r.top+'px';efDrag={id:ev.pointerId,startX:ev.clientX,startY:ev.clientY,startLeft:r.left,startTop:r.top,moved:false};try{emergencyFab.setPointerCapture(ev.pointerId)}catch{}emergencyFab.classList.add('dragging');ev.preventDefault()});
-emergencyFab.addEventListener('pointermove',ev=>{if(!efDrag||efDrag.id!==ev.pointerId)return;let dx=ev.clientX-efDrag.startX,dy=ev.clientY-efDrag.startY;if(Math.hypot(dx,dy)>5)efDrag.moved=true;if(!efDrag.moved)return;let p=clampFab(efDrag.startLeft+dx,efDrag.startTop+dy);emergencyFab.style.left=p.left+'px';emergencyFab.style.top=p.top+'px';ev.preventDefault()});
-function endEmergencyFabPointer(ev){if(!efDrag||efDrag.id!==ev.pointerId)return;let moved=efDrag.moved;efDrag=null;emergencyFab.classList.remove('dragging');try{emergencyFab.releasePointerCapture(ev.pointerId)}catch{}let r=emergencyFab.getBoundingClientRect(),p=clampFab(r.left,r.top);emergencyFab.style.left=p.left+'px';emergencyFab.style.top=p.top+'px';state.emergencyFabPos={left:p.left,top:p.top};persist();if(!moved){state.activeEmergency?finishEmergency():startEmergency()}ev.preventDefault()}
-emergencyFab.addEventListener('pointerup',endEmergencyFabPointer);emergencyFab.addEventListener('pointercancel',ev=>{if(efDrag&&efDrag.id===ev.pointerId){efDrag=null;emergencyFab.classList.remove('dragging')}});window.addEventListener('resize',applyFabPos);window.visualViewport?.addEventListener('resize',applyFabPos);
+function fabViewport(){
+  const de=document.documentElement;
+  return {w:Math.max(1,de.clientWidth||window.innerWidth||360),h:Math.max(1,window.innerHeight||de.clientHeight||640)};
+}
+function fabLimits(){
+  const v=fabViewport(),pad=6,w=emergencyFab.offsetWidth||150,h=emergencyFab.offsetHeight||58;
+  return {pad,maxL:Math.max(pad,v.w-w-pad),maxT:Math.max(pad,v.h-h-pad)};
+}
+function clampFab(left,top){
+  const lim=fabLimits();
+  return {left:Math.max(lim.pad,Math.min(lim.maxL,Number(left)||lim.pad)),top:Math.max(lim.pad,Math.min(lim.maxT,Number(top)||lim.pad))};
+}
+function saveFabPos(left,top){
+  const lim=fabLimits(),p=clampFab(left,top),rx=lim.maxL>lim.pad?(p.left-lim.pad)/(lim.maxL-lim.pad):0,ry=lim.maxT>lim.pad?(p.top-lim.pad)/(lim.maxT-lim.pad):0;
+  state.emergencyFabPos={x:Math.max(0,Math.min(1,rx)),y:Math.max(0,Math.min(1,ry)),left:p.left,top:p.top};
+  persist();
+}
+function applyFabPos(){
+  if(!emergencyFab)return;
+  emergencyFab.style.right='auto';emergencyFab.style.bottom='auto';
+  const lim=fabLimits(),pos=state.emergencyFabPos||{};
+  let left,top;
+  if(Number.isFinite(Number(pos.x))&&Number.isFinite(Number(pos.y))){
+    left=lim.pad+Math.max(0,Math.min(1,Number(pos.x)))*(lim.maxL-lim.pad);
+    top=lim.pad+Math.max(0,Math.min(1,Number(pos.y)))*(lim.maxT-lim.pad);
+  }else if(Number.isFinite(Number(pos.left))&&Number.isFinite(Number(pos.top))){
+    ({left,top}=clampFab(Number(pos.left),Number(pos.top)));
+  }else{
+    left=lim.maxL;top=lim.maxT;
+  }
+  const p=clampFab(left,top);emergencyFab.style.left=p.left+'px';emergencyFab.style.top=p.top+'px';
+}
+function beginFabDrag(ev){
+  if(ev.pointerType==='mouse'&&ev.button!==0)return;
+  ensureAudio();
+  const r=emergencyFab.getBoundingClientRect(),p=clampFab(r.left,r.top);
+  emergencyFab.style.right='auto';emergencyFab.style.bottom='auto';emergencyFab.style.left=p.left+'px';emergencyFab.style.top=p.top+'px';
+  efDrag={id:ev.pointerId,grabX:ev.clientX-r.left,grabY:ev.clientY-r.top,startX:ev.clientX,startY:ev.clientY,moved:false};
+  try{emergencyFab.setPointerCapture(ev.pointerId)}catch{}
+  emergencyFab.classList.add('dragging');document.documentElement.style.overscrollBehavior='none';
+  ev.preventDefault();ev.stopPropagation();
+}
+function moveFabDrag(ev){
+  if(!efDrag||efDrag.id!==ev.pointerId)return;
+  if(Math.hypot(ev.clientX-efDrag.startX,ev.clientY-efDrag.startY)>4)efDrag.moved=true;
+  if(efDrag.moved){
+    const p=clampFab(ev.clientX-efDrag.grabX,ev.clientY-efDrag.grabY);
+    emergencyFab.style.left=p.left+'px';emergencyFab.style.top=p.top+'px';
+  }
+  ev.preventDefault();ev.stopPropagation();
+}
+function endEmergencyFabPointer(ev){
+  if(!efDrag||efDrag.id!==ev.pointerId)return;
+  const moved=efDrag.moved;efDrag=null;emergencyFab.classList.remove('dragging');document.documentElement.style.overscrollBehavior='';
+  try{emergencyFab.releasePointerCapture(ev.pointerId)}catch{}
+  const r=emergencyFab.getBoundingClientRect(),p=clampFab(r.left,r.top);emergencyFab.style.left=p.left+'px';emergencyFab.style.top=p.top+'px';saveFabPos(p.left,p.top);
+  if(!moved){state.activeEmergency?finishEmergency():startEmergency()}
+  ev.preventDefault();ev.stopPropagation();
+}
+emergencyFab.addEventListener('pointerdown',beginFabDrag,{passive:false});
+emergencyFab.addEventListener('pointermove',moveFabDrag,{passive:false});
+emergencyFab.addEventListener('pointerup',endEmergencyFabPointer,{passive:false});
+emergencyFab.addEventListener('pointercancel',ev=>{if(efDrag&&efDrag.id===ev.pointerId){efDrag=null;emergencyFab.classList.remove('dragging');document.documentElement.style.overscrollBehavior='';requestAnimationFrame(applyFabPos)}});
+function reflowFab(){requestAnimationFrame(applyFabPos);setTimeout(applyFabPos,120);setTimeout(applyFabPos,350)}
+window.addEventListener('resize',reflowFab);window.addEventListener('orientationchange',reflowFab);window.visualViewport?.addEventListener('resize',reflowFab);
 $('stopPersistentRing').onclick=()=>{stopAlarmSound();$('reminderStatus').textContent='تم إيقاف الجرس يدويًا.'};
 $('emergencyUseBuffer').onclick=applyEmergencyBuffer;$('emergencyShiftPlan').onclick=shiftPlanAfterEmergency;$('emergencyKeepPlan').onclick=()=>{$('emergencySummary').classList.remove('show');let x=state._lastEmergencySummary,mins=x?Math.max(1,Math.round(x.durationMs/60000)):0,msg=`تم تسجيل الطارئ (${mins}د) في Actual بدون تغيير PLAN.`;$('reminderStatus').textContent=msg;renderPlanner();resumeAfterEmergencyChoice(msg)};
-$('todayPill').textContent=new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});loadSelectedPlan();renderPlanner();renderTimer();applyFabPos();updateEmergencyUI();document.addEventListener('pointerdown',ensureAudio,{once:true});setInterval(tick,1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});window.addEventListener('beforeunload',persist);
+$('todayPill').textContent=new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});loadSelectedPlan();renderPlanner();renderTimer();applyFabPos();setTimeout(applyFabPos,120);updateEmergencyUI();document.addEventListener('pointerdown',ensureAudio,{once:true});setInterval(tick,1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});window.addEventListener('beforeunload',persist);
 })();
 </script>
 
